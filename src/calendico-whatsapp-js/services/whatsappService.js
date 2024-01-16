@@ -1,11 +1,11 @@
 const { Client, RemoteAuth } = require('./../../../index.js');
 const SQLiteStore = require('./databaseService');
 const qrcodeTerminal = require('qrcode-terminal');
+const { addClient } = require('./../clients/ClientsConnected');
+const axios = require('axios');
 
-const clients = {};
-
-const initializeWhatsAppClient = async (location_identifier) => {
-    console.log(`Initializing WhatsApp client for ${location_identifier}`);
+const initializeWhatsAppClient = async (location_identifier, user_id) => {
+    console.log(`Initializing WhatsApp client for ${location_identifier} by user ${user_id}...`);
 
     // Create an instance of SQLiteStore for the session
     const store = new SQLiteStore(location_identifier);
@@ -18,25 +18,25 @@ const initializeWhatsAppClient = async (location_identifier) => {
             authStrategy: new RemoteAuth({
                 store: store,
                 clientId: location_identifier,
-                backupSyncIntervalMs: 15 * (60 * 1000) // Optional: Sync interval in milliseconds
+                backupSyncIntervalMs: 5 * (60 * 1000) // Optional: Sync interval in milliseconds
             })
         });
 
         // Setup event listeners for the client
-        setupClientEventListeners(client, location_identifier);
+        setupClientEventListeners(client, location_identifier, user_id);
 
         // Initialize the client
         client.initialize();
 
         // Store the client instance in the clients object
-        clients[location_identifier] = client;
+        addClient(location_identifier, client);
 
     } catch (error) {
         console.error(`Failed to initialize WhatsApp client for ${location_identifier}:`, error);
     }
 };
 
-const setupClientEventListeners = (client, location_identifier) => {
+const setupClientEventListeners = (client, location_identifier, user_id) => {
     client.on('qr', async (qr) => {
         // Send QR code to Rails app instead of logging it
         console.log(`QR code for ${location_identifier}:`, qr);
@@ -45,10 +45,12 @@ const setupClientEventListeners = (client, location_identifier) => {
             qrcodeTerminal.generate(qr, { small: true });
             console.log('----------------------------------------------------------------------------------------------');
             console.log('sending qr code to rails app');
-            // await axios.post('http://localhost:3000/whatsapp_web/qr_code', {
-            //     qrcode: qr,
-            //     location_identifier: location_identifier
-            // });
+            // TODO: send qr code to rails app!!
+            await axios.post('http://localhost:3000/whatsapp_web/qr_code', {
+                code: qr,
+                location_identifier: location_identifier,
+                user_id: user_id
+            });
         } catch (error) {
             console.error(`Failed to send QR code for ${location_identifier}:`, error);
         }
@@ -65,7 +67,7 @@ const setupClientEventListeners = (client, location_identifier) => {
     client.on('authenticated', () => {
         // Save the new session data to the database
         console.log('1----------------------------------------------------------------------------------------------');
-        console.info('Saving session for location:', location_identifier);
+        console.info('Starting to save session for location:', location_identifier);
         console.info('This can take up to a minute depending on the size of the session data, so please wait.');
         console.log('1----------------------------------------------------------------------------------------------');
     });
@@ -77,9 +79,18 @@ const setupClientEventListeners = (client, location_identifier) => {
         console.log('2----------------------------------------------------------------------------------------------');
     });
 
-    client.on('ready', () => {
+    client.on('ready', async () => {
         console.log('1----------------------------------------------------------------------------------------------');
         console.log(`WhatsApp client is ready for ${location_identifier}!`);
+        // 
+        // TODO: send ready event to rails app!!
+        await axios.post('http://localhost:3000/whatsapp_js/new_login', {
+            event_type: 'success',
+            user_id: user_id,
+            location_identifier: location_identifier
+        }).catch(error => {
+            console.error('Error sending ready event to rails app:', error);
+        });
         console.log('2----------------------------------------------------------------------------------------------');
     });
 
@@ -100,7 +111,9 @@ const setupClientEventListeners = (client, location_identifier) => {
 
 async function processMessage(message) {
     console.log('1----------------------------------------------------------------------------------------------');
-    console.log('Message received: ', message);
+    console.log('These are all the properties of the message object:');
+    printTree(message);
+    console.log('-------------------------------------------------------');
     console.log('Message body: ', message.body);
     console.log('Message from: ', message.from);
     console.log('Message author: ', message.author);
@@ -118,8 +131,19 @@ async function processMessage(message) {
     console.log('2----------------------------------------------------------------------------------------------');
 }
 
-const getClient = (location_identifier) => {
-    return clients[location_identifier] || null;
-};
+function printTree(obj, depth = 0) {
+    const indent = '_'.repeat(depth * 4); // Increase indent for each level of depth
+    Object.keys(obj).forEach(key => {
+        const value = obj[key];
 
-module.exports = { initializeWhatsAppClient, getClient };
+        // Check if value is an object and not null, and recursively call printTree
+        if (typeof value === 'object' && value !== null) {
+            console.log(`| ${indent}${key}:`);
+            printTree(value, depth + 1);
+        } else {
+            console.log(`| ${indent}${key}: ${value}`);
+        }
+    });
+}
+
+module.exports = { initializeWhatsAppClient };

@@ -1,4 +1,5 @@
 'use strict';
+const { removeClient } = require('./../calendico-whatsapp-js/clients/ClientsConnected');
 
 /* Require Optional Dependencies */
 try {
@@ -81,11 +82,19 @@ class RemoteAuth extends BaseAuthStrategy {
         await this.deleteRemoteSession();
 
         let pathExists = await this.isValidPath(this.userDataDir);
+        console.log('----------------------------------------------------------------------------------------------');
+        console.log('pathExists: ', pathExists);
+        console.log('this.userDataDir: ', this.userDataDir);
+        console.log('this.backupSync: ', this.backupSync);
+        console.log('----------------------------------------------------------------------------------------------');
         if (pathExists) {
             await fs.promises.rm(this.userDataDir, {
                 recursive: true,
                 force: true
-            }).catch(() => {});
+            }).catch((error) => {
+                console.error('Error deleting userDataDir:', error);
+            });
+            removeClient(this.clientId);
         }
         clearInterval(this.backupSync);
     }
@@ -151,6 +160,9 @@ class RemoteAuth extends BaseAuthStrategy {
     }
 
     async compressSession() {
+        await deleteFileIfExists(this.dataPath, `${this.sessionName}.zip`)
+            .catch(error => console.error(`Error deleting ${this.dataPath}/${this.sessionName}.zip:`, error));
+        
         const archive = archiver('zip');
         const stream = fs.createWriteStream(`${this.dataPath}/${this.sessionName}.zip`);
         console.log('Starting compression process...');
@@ -213,7 +225,6 @@ class RemoteAuth extends BaseAuthStrategy {
         console.log('----------------------------------------------------------------------------------------------');
         console.log('compressedSessionPath: ', compressedSessionPath);
         console.log('----------------------------------------------------------------------------------------------');
-        await fs.promises.unlink(compressedSessionPath);
     }
 
     async deleteMetadata() {
@@ -252,6 +263,27 @@ class RemoteAuth extends BaseAuthStrategy {
 
     async delay(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
+    }
+}
+
+async function deleteFileIfExists(dataPath, archiveName) {
+    const filePath = path.join(dataPath, `${archiveName}.zip`);
+
+    try {
+        // Check if the file exists
+        await fs.promises.access(filePath, fs.constants.F_OK);
+        // If the file exists, the above line will succeed, and the next line will be executed
+        await fs.promises.unlink(filePath);
+        console.log(`File ${filePath} deleted successfully`);
+    } catch (error) {
+        // If the file does not exist, an error will be thrown
+        if (error.code === 'ENOENT') {
+            // File does not exist, handle it as needed
+            console.log(`File ${filePath} does not exist`);
+        } else {
+            // Other errors (e.g., permission issues)
+            throw error;
+        }
     }
 }
 

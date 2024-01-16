@@ -8,7 +8,7 @@ app.use(bodyParser.json());
 // Use the routes from the routes file
 app.use('/', routes);
 
-const PORT = process.env.PORT || 3003;
+const PORT = process.env.PORT || 8083;
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });

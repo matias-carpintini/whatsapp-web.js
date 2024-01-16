@@ -10,8 +10,8 @@ router.post('/send_message', async (req, res) => {
 });
 
 router.post('/login', (req, res) => {
-    const { location_identifier } = req.body;
-    return loginClient(location_identifier, res);
+    const { location_identifier,  user_id } = req.body;
+    return loginClient(location_identifier, user_id, res);
 });
 
 module.exports = router;
