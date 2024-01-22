@@ -94,6 +94,10 @@ class RemoteAuth extends BaseAuthStrategy {
             }).catch((error) => {
                 console.error('Error deleting userDataDir:', error);
             });
+            await fs.promises.unlink(`${this.userDataDir}/${this.sessionName}.zip`)
+                .catch((error) => {
+                    console.error('Error deleting session zip file:', error);
+                });
             removeClient(this.clientId);
         }
         clearInterval(this.backupSync);
@@ -115,6 +119,7 @@ class RemoteAuth extends BaseAuthStrategy {
         /* Compress & Store Session */
         const pathExists = await this.isValidPath(this.userDataDir);
         console.log('----------------------------------------------------------------------------------------------');
+        console.log('start storeRemoteSession');
         console.log('pathExists: ', pathExists);
         console.log('----------------------------------------------------------------------------------------------');
         if (pathExists) {
@@ -130,6 +135,8 @@ class RemoteAuth extends BaseAuthStrategy {
     }
 
     async extractRemoteSession() {
+        console.log('----------------------------------------------------------------------------------------------');
+        console.log('start extractRemoteSession');
         const pathExists = await this.isValidPath(this.userDataDir);
         const compressedSessionPath = `${this.dataPath}/${this.sessionName}.zip`;
         const sessionExists = await this.store.sessionExists({session: this.sessionName});
@@ -155,11 +162,15 @@ class RemoteAuth extends BaseAuthStrategy {
     }
 
     async deleteRemoteSession() {
+        console.log('----------------------------------------------------------------------------------------------');
+        console.log('start deleteRemoteSession');
         const sessionExists = await this.store.sessionExists({session: this.sessionName});
         if (sessionExists) await this.store.delete({session: this.sessionName});
     }
 
     async compressSession() {
+        console.log('----------------------------------------------------------------------------------------------');
+        console.log('start compressSession');
         await deleteFileIfExists(this.dataPath, `${this.sessionName}.zip`)
             .catch(error => console.error(`Error deleting ${this.dataPath}/${this.sessionName}.zip:`, error));
         
@@ -228,7 +239,7 @@ class RemoteAuth extends BaseAuthStrategy {
     }
 
     async deleteMetadata() {
-        const sessionDirs = [this.tempDir, path.join(this.tempDir, 'Default')];
+        const sessionDirs = [path.join(this.tempDir, 'Default'), this.tempDir,];
         console.log('----------------------------------------------------------------------------------------------');
         console.log('sessionDirs: ', sessionDirs);
         console.log('----------------------------------------------------------------------------------------------');
@@ -238,7 +249,7 @@ class RemoteAuth extends BaseAuthStrategy {
                 if (!this.requiredDirs.includes(element)) {
                     const dirElement = path.join(dir, element);
                     const stats = await fs.promises.lstat(dirElement);
-    
+
                     if (stats.isDirectory()) {
                         await fs.promises.rm(dirElement, {
                             recursive: true,

@@ -40,12 +40,14 @@ const setupClientEventListeners = (client, location_identifier, user_id) => {
     client.on('qr', async (qr) => {
         // Send QR code to Rails app instead of logging it
         console.log(`QR code for ${location_identifier}:`, qr);
+        console.log('----------------------------------------------------------------------------------------------');
+        console.log(`location_identifier: ${location_identifier}, user_id: ${user_id}`);
+        console.log('----------------------------------------------------------------------------------------------');
         try {
             console.log('----------------------------------------------------------------------------------------------');
             qrcodeTerminal.generate(qr, { small: true });
             console.log('----------------------------------------------------------------------------------------------');
             console.log('sending qr code to rails app');
-            // TODO: send qr code to rails app!!
             await axios.post('http://localhost:3000/whatsapp_web/qr_code', {
                 code: qr,
                 location_identifier: location_identifier,
@@ -82,12 +84,16 @@ const setupClientEventListeners = (client, location_identifier, user_id) => {
     client.on('ready', async () => {
         console.log('1----------------------------------------------------------------------------------------------');
         console.log(`WhatsApp client is ready for ${location_identifier}!`);
-        // 
-        // TODO: send ready event to rails app!!
+        const client_number = client.info.wid.user;
+        const client_platform = client.info.platform;
+        const client_pushname = client.info.pushname;
         await axios.post('http://localhost:3000/whatsapp_js/new_login', {
             event_type: 'success',
             user_id: user_id,
-            location_identifier: location_identifier
+            phone: client_number,
+            location_identifier: location_identifier,
+            client_platform: client_platform,
+            client_pushname: client_pushname
         }).catch(error => {
             console.error('Error sending ready event to rails app:', error);
         });

@@ -6,7 +6,10 @@ async function send_message_to_client(location_identifier, res, receiver_phone, 
         const client = getClient(location_identifier);
         if (!client) {
             // Initialize client if not already done
-            await initializeWhatsAppClient(location_identifier);
+            console.log('============================================');
+            console.log('Client not initialized yet. Initializing...');
+            console.log('============================================');
+            await initializeWhatsAppClient(location_identifier, 'automatic_reconnect');
             return res.status(400).json({
                 success: false,
                 message: "Client not initialized yet. Please try again after re connecting the session. We'll try to reconnect the session automatically."
