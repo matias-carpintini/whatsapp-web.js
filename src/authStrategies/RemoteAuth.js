@@ -190,7 +190,7 @@ class RemoteAuth extends BaseAuthStrategy {
             console.log('Metadata deleted.');
         } catch (deleteMetaError) {
             console.error('Error deleting metadata:', deleteMetaError);
-            throw deleteMetaError; // Rethrowing the error or handle it as needed
+            //throw deleteMetaError; // Rethrowing the error or handle it as needed
         }
 
         return new Promise((resolve, reject) => {

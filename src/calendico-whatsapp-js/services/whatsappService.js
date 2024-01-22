@@ -102,39 +102,70 @@ const setupClientEventListeners = (client, location_identifier, user_id) => {
 
     // Handle other necessary events like 'message', 'disconnected', etc.
     client.on('message', (message) => {
-        processMessage(message).catch(error => {
+        processMessage(client, location_identifier, message).catch(error => {
             console.error('Error in processMessage:', error);
         });
     });
 
-    client.on('disconnected', (reason) => {
+    client.on('disconnected', async (reason) => {
+        const client_number = client.info.wid.user;
         console.log('1----------------------------------------------------------------------------------------------');
         console.log('Client was logged out: ', reason);
         console.log('2----------------------------------------------------------------------------------------------');
-        // send logout event to rails app
+        await axios.post('http://localhost:3000/whatsapp_js/new_login', {
+            event_type: 'logout',
+            user_id: user_id,
+            phone: client_number,
+            location_identifier: location_identifier,
+        }).catch(error => {
+            console.error('Error sending ready event to rails app:', error);
+        });
     });
 };
 
-async function processMessage(message) {
+async function processMessage(client, location_identifier, message) {
     console.log('1----------------------------------------------------------------------------------------------');
     console.log('These are all the properties of the message object:');
-    printTree(message);
+    //printTree(message);
+    const client_phone_number = extractNumber(message.from);
+    const message_body = message.body;
     console.log('-------------------------------------------------------');
-    console.log('Message body: ', message.body);
-    console.log('Message from: ', message.from);
+    console.log('Message body: ', message_body);
+    console.log('Message from: ', client_phone_number);
     console.log('Message author: ', message.author);
-    console.log('Message to: ', message.to);
     console.log('Message type: ', message.type);
     console.log('Message deviceType: ', message.deviceType);
     console.log('Message fromMe: ', message.fromMe);
-
     try {
         const chat = await message.getChat();
-        console.log('Message is group: ', chat.isGroup);
+        const groupChat = await chat.isGroup;
+        console.log('Message is group: ', groupChat);
+        if (!groupChat) {
+            forwardMessageToRails(client_phone_number, location_identifier, message_body);
+        }
     } catch (error) {
         console.error('Error obtaining chat:', error);
     }
     console.log('2----------------------------------------------------------------------------------------------');
+}
+
+function extractNumber(str) {
+    let separator = str.includes('-') ? '-' : '@';
+    let numberBeforeSeparator = str.split(separator)[0];
+    return numberBeforeSeparator;
+}
+
+function forwardMessageToRails(client_phone_number, location_identifier, message_body) {
+    console.log('1----------------------------------------------------------------------------------------------');
+    console.log('Forwarding message to rails app...');
+    console.log('2----------------------------------------------------------------------------------------------');
+    axios.post('http://localhost:3000/whatsapp_js/incoming_messages', {
+        client_phone_number: client_phone_number,
+        location_identifier: location_identifier,
+        message_body: message_body
+    }).catch(error => { 
+        console.error('Error forwarding message to rails app:', error);
+    });
 }
 
 function printTree(obj, depth = 0) {

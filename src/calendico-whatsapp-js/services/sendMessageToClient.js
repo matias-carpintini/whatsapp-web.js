@@ -22,7 +22,7 @@ async function send_message_to_client(location_identifier, res, receiver_phone, 
         console.log('============================================');
         console.log('client.getState():', client_state);
         console.log('============================================');
-        if (client_state === 'CONFLICT' || client_state === 'UNPAIRED' || client_state === 'UNLAUNCHED') {
+        if (client_state === null || client_state === 'CONFLICT' || client_state === 'UNPAIRED' || client_state === 'UNLAUNCHED') {
             await initializeWhatsAppClient(location_identifier);
             return res.status(400).json({
                 success: false,
@@ -30,9 +30,16 @@ async function send_message_to_client(location_identifier, res, receiver_phone, 
             });
         } else {
             try {
-                const response = await client.sendMessage(`${receiver_phone}@c.us`, message);
+                const messageObject = await client.sendMessage(`${receiver_phone}@c.us`, message);
+                let chat = await messageObject.getChat();
                 console.log('============================================');
-                console.log('sending message response:', response);
+                console.log('message:', message);
+                console.log('============================================');
+                const archive_result = await chat.archive();
+                console.log(`archive_result: ${archive_result}`);
+                chat = await messageObject.getChat();
+                console.log('============================================');
+                console.log('chat:', chat);
                 console.log('============================================');
                 res.json({ success: true, message: 'Message sent successfully' });
 
