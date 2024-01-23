@@ -14,7 +14,7 @@
 
 ## Endpoints
 - The endpoints are defined in [`src/calendico-whatsapp-js/routes`](../endpoints/routes.js) and are:
-  1. `/login`
+  1. `/login` (POST)
        - This endpoint is used to login to WhatsApp. The function that handles the request is [`src/calendico-whatsapp-js/services/loginClient.js`](../services/loginClient.js).
          - The request body should be a JSON object with the following fields:
          1. `location_identifier`: The is of the location logging in.
@@ -27,7 +27,7 @@
          - If the client is not found, the `initializeWhatsAppClient` function is called to initialize the client.
          - If the client is found, then there is no need to initialize it again.
          - The client is then returned to the caller. 
-  2. `/logout`
+  2. `/logout` (POST)
       - This endpoint is used to logout of WhatsApp. It is used jsut like the login endpoint.
         - The request body should be a JSON object with the following fields:
         1. `location_identifier`: The is of the location logging out.
@@ -35,7 +35,7 @@
       - The `logoutClient` service fetches the client from the clients drawer object defined in [`src/calendico-whatsapp-js/clients/ClientsConnected.js`](../clients/ClientsConnected.js).
         - If the client is not found, the `initializeWhatsAppClient` function is called to initialize the client.
         - If the client is found, then the `logout` function is called to logout the client. This is handled by the `whatsapp-web.js` library.
-  3. `/send_message`
+  3. `/send_message` (POST)
       - This endpoint is used to send a message to a WhatsApp number.
         - The request body should be a JSON object with the following fields:
         1. `location_identifier`: The WhatsApp number to send the message to.
@@ -51,6 +51,27 @@
         3. sends the message using the `sendMessage` function of the `whatsapp-web.js` library.
         4. archives the chat after sending the message.
         5. responds with a `200` response.
+  4`/chats` (GET)
+      - This endpoint is used to get a certain number of chats from the location:
+          - The request is a get request with the following query params (for location 13 and to get 10 messages for every chat)
+            1. location_identifier=13
+            2. chats_to_get=10
+          - The response is a JSON object with the following fields:
+            ```JSON
+              "code": 200,
+              "status": "success",
+              "body": {
+                       "Chat name": {
+                       "groupChat": false,
+                       "messages": [
+                                    {
+                                      "from": "5491134525535",
+                                      "fromMe": true,
+                                      "body": "🤖 *Gracias por escribir a nuestra línea automática de turnos (desde aquí recibirás tus notificaciones).*\n\nPara gestionar tus turnos, pulsa el link👇🏼\nhttps://app.calendico.com/beauty-shop\n"
+                                      },
+                                   ]
+                      }
+            ```
 
 ## The whatsapp-web.js library
 - These are the official docs for the library: https://docs.wwebjs.dev/ and this is the starting guide: https://wwebjs.dev/guide/.
