@@ -68,3 +68,49 @@
 - Sometimes the messages are sent but they are not received by the receiver. The message has only one tick, it even appears in the chat but the receiver does not receive it.
 - Sometimes the session doesn't get recovered.
 - A lost session scenario might be handled but we need rails to be able to react to new QR codes sent to restore the session.
+
+
+## Flaky errors
+```
+> node app.js
+Server running on port 8093
+============================================
+Client not initialized yet. Initializing...
+============================================
+Initializing WhatsApp client for 13 by user automatic_reconnect...
+Connected to the SQLite database.
+----------------------------------------------------------------------------------------------
+this.userDataDir:  /Users/TucuGomez/Documents/whatsapp-web.js/src/calendico-whatsapp-js/.wwebjs_auth/RemoteAuth-13
+this.sessionName:  RemoteAuth-13
+----------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------
+start extractRemoteSession
+----------------------------------------------------------------------------------------------
+pathExists:  true
+this.userDataDir:  /Users/TucuGomez/Documents/whatsapp-web.js/src/calendico-whatsapp-js/.wwebjs_auth/RemoteAuth-13
+sessionExists:  true
+this.userDataDir:  RemoteAuth-13
+compressedSessionPath:  /Users/TucuGomez/Documents/whatsapp-web.js/src/calendico-whatsapp-js/.wwebjs_auth/RemoteAuth-13.zip
+----------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------
+compressedSessionPath:  /Users/TucuGomez/Documents/whatsapp-web.js/src/calendico-whatsapp-js/.wwebjs_auth/RemoteAuth-13.zip
+----------------------------------------------------------------------------------------------
+1#######################################################
+authEventPayload:
+undefined
+2#######################################################
+1----------------------------------------------------------------------------------------------
+Starting to save session for location: 13
+This can take up to a minute depending on the size of the session data, so please wait.
+1----------------------------------------------------------------------------------------------
+============================================
+client.getState(): CONNECTED
+============================================
+Error: Error: Evaluation failed: TypeError: Cannot read properties of undefined (reading 'sendSeen')
+    at __puppeteer_evaluation_script__:7:37
+    at ExecutionContext._evaluateInternal (/Users/TucuGomez/Documents/whatsapp-web.js/node_modules/puppeteer/lib/cjs/puppeteer/common/ExecutionContext.js:221:19)
+    at processTicksAndRejections (node:internal/process/task_queues:96:5)
+    at async ExecutionContext.evaluate (/Users/TucuGomez/Documents/whatsapp-web.js/node_modules/puppeteer/lib/cjs/puppeteer/common/ExecutionContext.js:110:16)
+    at async Client.sendMessage (/Users/TucuGomez/Documents/whatsapp-web.js/src/Client.js:905:28)
+    at async send_message_to_client (/Users/TucuGomez/Documents/whatsapp-web.js/src/calendico-whatsapp-js/services/sendMessageToClient.js:33:39)
+```

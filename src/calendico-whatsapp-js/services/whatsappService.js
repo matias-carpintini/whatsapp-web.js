@@ -2,6 +2,7 @@ const { Client, RemoteAuth } = require('./../../../index.js');
 const SQLiteStore = require('./databaseService');
 const qrcodeTerminal = require('qrcode-terminal');
 const { addClient } = require('./../clients/ClientsConnected');
+const { extractNumber } = require('../utils/utilities');
 const axios = require('axios');
 
 const initializeWhatsAppClient = async (location_identifier, user_id) => {
@@ -147,12 +148,6 @@ async function processMessage(client, location_identifier, message) {
         console.error('Error obtaining chat:', error);
     }
     console.log('2----------------------------------------------------------------------------------------------');
-}
-
-function extractNumber(str) {
-    let separator = str.includes('-') ? '-' : '@';
-    let numberBeforeSeparator = str.split(separator)[0];
-    return numberBeforeSeparator;
 }
 
 function forwardMessageToRails(client_phone_number, location_identifier, message_body) {
