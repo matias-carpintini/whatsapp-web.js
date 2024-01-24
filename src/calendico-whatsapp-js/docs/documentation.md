@@ -176,3 +176,42 @@ Error: Error: Evaluation failed: TypeError: Cannot read properties of undefined 
     at async Client.sendMessage (/Users/TucuGomez/Documents/whatsapp-web.js/src/Client.js:905:28)
     at async send_message_to_client (/Users/TucuGomez/Documents/whatsapp-web.js/src/calendico-whatsapp-js/services/sendMessageToClient.js:33:39)
 ```
+
+```
+Error: Error: Protocol error (Runtime.callFunctionOn): Session closed. Most likely the page has been closed.
+    at CDPSession.send (/Users/TucuGomez/Documents/whatsapp-web.js/node_modules/puppeteer/lib/cjs/puppeteer/common/Connection.js:218:35)
+    at ExecutionContext._evaluateInternal (/Users/TucuGomez/Documents/whatsapp-web.js/node_modules/puppeteer/lib/cjs/puppeteer/common/ExecutionContext.js:204:50)
+    at ExecutionContext.evaluate (/Users/TucuGomez/Documents/whatsapp-web.js/node_modules/puppeteer/lib/cjs/puppeteer/common/ExecutionContext.js:110:27)
+    at DOMWorld.evaluate (/Users/TucuGomez/Documents/whatsapp-web.js/node_modules/puppeteer/lib/cjs/puppeteer/common/DOMWorld.js:97:24)
+    at runMicrotasks (<anonymous>)
+    at processTicksAndRejections (node:internal/process/task_queues:96:5)
+Error [ERR_HTTP_HEADERS_SENT]: Cannot set headers after they are sent to the client
+    at new NodeError (node:internal/errors:371:5)
+    at ServerResponse.setHeader (node:_http_outgoing:576:11)
+    at ServerResponse.header (/Users/TucuGomez/Documents/whatsapp-web.js/node_modules/express/lib/response.js:794:10)
+    at ServerResponse.send (/Users/TucuGomez/Documents/whatsapp-web.js/node_modules/express/lib/response.js:174:12)
+    at ServerResponse.json (/Users/TucuGomez/Documents/whatsapp-web.js/node_modules/express/lib/response.js:278:15)
+    at send_message_to_client (/Users/TucuGomez/Documents/whatsapp-web.js/src/calendico-whatsapp-js/services/sendMessageToClient.js:57:33)
+    at runMicrotasks (<anonymous>)
+    at processTicksAndRejections (node:internal/process/task_queues:96:5)
+    at async /Users/TucuGomez/Documents/whatsapp-web.js/src/calendico-whatsapp-js/endpoints/routes.js:12:12 {
+  code: 'ERR_HTTP_HEADERS_SENT'
+}
+node:internal/errors:464
+    ErrorCaptureStackTrace(err);
+    ^
+
+Error [ERR_HTTP_HEADERS_SENT]: Cannot set headers after they are sent to the client
+    at new NodeError (node:internal/errors:371:5)
+    at ServerResponse.setHeader (node:_http_outgoing:576:11)
+    at ServerResponse.header (/Users/TucuGomez/Documents/whatsapp-web.js/node_modules/express/lib/response.js:794:10)
+    at ServerResponse.send (/Users/TucuGomez/Documents/whatsapp-web.js/node_modules/express/lib/response.js:174:12)
+    at ServerResponse.json (/Users/TucuGomez/Documents/whatsapp-web.js/node_modules/express/lib/response.js:278:15)
+    at send_message_to_client (/Users/TucuGomez/Documents/whatsapp-web.js/src/calendico-whatsapp-js/services/sendMessageToClient.js:62:25)
+    at runMicrotasks (<anonymous>)
+    at processTicksAndRejections (node:internal/process/task_queues:96:5)
+    at async /Users/TucuGomez/Documents/whatsapp-web.js/src/calendico-whatsapp-js/endpoints/routes.js:12:12 {
+  code: 'ERR_HTTP_HEADERS_SENT'
+}
+
+```

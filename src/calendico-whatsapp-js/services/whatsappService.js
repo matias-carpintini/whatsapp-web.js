@@ -144,9 +144,7 @@ const setupClientEventListeners = (client, location_identifier, user_id) => {
         console.log('ACK_PLAYED: 4');
         console.log('Message ack:', ack);
         console.log('2----------------------------------------------------------------------------------------------');
-        if (ack == 3) {
-            // The message was read
-        }
+        notifyMessageStatus({ message_serialized_id: msg.id._serialized, message_status: msg.ack });
     });
 };
 
@@ -185,6 +183,14 @@ function forwardMessageToRails(client_phone_number, location_identifier, message
         location_identifier: location_identifier,
         message_body: message_body
     }).catch(error => { 
+        console.error('Error forwarding message to rails app:', error);
+    });
+}
+function notifyMessageStatus(payload) {
+    console.log('1----------------------------------------------------------------------------------------------');
+    console.log('Forwarding message to rails app...');
+    console.log('2----------------------------------------------------------------------------------------------');
+    axios.post('http://localhost:3000/whatsapp_js/message_status', payload).catch(error => { 
         console.error('Error forwarding message to rails app:', error);
     });
 }

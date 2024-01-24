@@ -43,7 +43,14 @@ async function send_message_to_client(location_identifier, res, receiver_phone, 
                 console.log('============================================');
                 console.log('messageObject:', messageObject);
                 console.log('============================================');
-                res.json({ success: true, message: 'Message sent successfully' });
+                res.json({ 
+                    success: true,
+                    from: messageObject.from,
+                    to: messageObject.to,
+                    message_body: messageObject.body,
+                    message: 'Message sent successfully', 
+                    message_serialized_id: messageObject.id._serialized, 
+                    message_status: messageObject.ack });
 
             } catch (error) {
                 console.error('Error:', error);
