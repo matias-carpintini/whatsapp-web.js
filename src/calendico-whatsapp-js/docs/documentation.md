@@ -85,6 +85,47 @@
   3. `src/calendico-whatsapp-js/whatsapp_sessions.db`: This file is the SQLite3 database used to store the session data for the `LocalAuth` strategy.
     - Note: these 3 objects can be deleted to start the login process from scratch.
 
+## Events
+- The client object listens to events emitted by the `whatsapp-web.js` library.
+- CUrrently, we listen to:
+  1. `qr`: This event is emitted when the QR code is generated.
+  2. `authenticated`: This event is emitted when the client is authenticated.
+  3. `auth_failure`: This event is emitted when the client fails to authenticate.
+  4. `ready`: This event is emitted when the client is ready to be used.
+  5. `disconnected`: This event is emitted when the client is disconnected. The session is deleted from the DB.
+  6. `message`: This event is emitted when a message is received.
+  7. `remote_session_saved`: This event is emitted when the session is saved in the zip file. This can take a minute or so.
+  8. `message_ack`: This event is emitted when a message is sent. We can store the message, receiver and serialized_id into the db and mark it as received when we receive this event. If the message doesn't get received within a few minutes we can retry to send it. The ack value is an integer that can be:
+    ```
+      == ACK VALUES ==
+      ACK_ERROR: -1
+      ACK_PENDING: 0
+      ACK_SERVER: 1
+      ACK_DEVICE: 2
+      ACK_READ: 3
+      ACK_PLAYED: 4
+
+      These are the empirical results of sending a message and listening to the `message_ack` event for a message sent to a private chat:
+
+      Sending the message:
+      message serialized_id: true_5493815879150@c.us_3EB0D0AC7CBC42DA0FB680 
+      message ack value:     0
+
+
+      First event received:
+      message serialized_id: true_5493815879150@c.us_3EB0D0AC7CBC42DA0FB680 
+      message ack value:     1
+
+
+      Second event received:
+      message serialized_id: true_5493815879150@c.us_3EB0D0AC7CBC42DA0FB680 
+      message ack value:     2
+
+      Third event received:
+      message serialized_id: true_5493815879150@c.us_3EB0D0AC7CBC42DA0FB680 
+      message ack value:     3
+    ```
+
 ## Problems encountered
 - Sometimes the messages are sent but they are not received by the receiver. The message has only one tick, it even appears in the chat but the receiver does not receive it.
 - Sometimes the session doesn't get recovered.

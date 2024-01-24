@@ -34,12 +34,14 @@ async function send_message_to_client(location_identifier, res, receiver_phone, 
                 let chat = await messageObject.getChat();
                 console.log('============================================');
                 console.log('message:', message);
+                console.log('===================###########==========');
+                console.log('message ACK:', messageObject.ack);
                 console.log('============================================');
                 const archive_result = await chat.archive();
                 console.log(`archive_result: ${archive_result}`);
-                chat = await messageObject.getChat();
+                //chat = await messageObject.getChat();
                 console.log('============================================');
-                console.log('chat:', chat);
+                console.log('messageObject:', messageObject);
                 console.log('============================================');
                 res.json({ success: true, message: 'Message sent successfully' });
 

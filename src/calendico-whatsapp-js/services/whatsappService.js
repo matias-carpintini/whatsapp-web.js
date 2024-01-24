@@ -122,6 +122,32 @@ const setupClientEventListeners = (client, location_identifier, user_id) => {
             console.error('Error sending ready event to rails app:', error);
         });
     });
+
+    client.on('message_ack', (msg, ack) => {
+        /*
+            == ACK VALUES ==
+            ACK_ERROR: -1
+            ACK_PENDING: 0
+            ACK_SERVER: 1
+            ACK_DEVICE: 2
+            ACK_READ: 3
+            ACK_PLAYED: 4
+        */
+        console.log('1----------------------------------------------------------------------------------------------');
+        console.log('Message:', msg);
+        console.log('These are the possible values of ack:');
+        console.log('ACK_ERROR: -1');
+        console.log('ACK_PENDING: 0');
+        console.log('ACK_SERVER: 1');
+        console.log('ACK_DEVICE: 2');
+        console.log('ACK_READ: 3');
+        console.log('ACK_PLAYED: 4');
+        console.log('Message ack:', ack);
+        console.log('2----------------------------------------------------------------------------------------------');
+        if (ack == 3) {
+            // The message was read
+        }
+    });
 };
 
 async function processMessage(client, location_identifier, message) {
