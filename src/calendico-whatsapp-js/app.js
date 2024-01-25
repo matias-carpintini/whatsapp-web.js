@@ -1,8 +1,11 @@
+require('dotenv').config({ path: '../../.env' });
+
 const express = require('express');
 const bodyParser = require('body-parser');
 const routes = require('./endpoints/routes'); // Import the routes
 
 const app = express();
+
 app.use(bodyParser.json());
 
 // Use the routes from the routes file

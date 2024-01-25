@@ -1,5 +1,5 @@
 const { Client, RemoteAuth } = require('./../../../index.js');
-const SQLiteStore = require('./databaseService');
+const PostgreSQLStore = require('./databaseService');
 const qrcodeTerminal = require('qrcode-terminal');
 const { addClient } = require('./../clients/ClientsConnected');
 const { extractNumber } = require('../utils/utilities');
@@ -8,8 +8,8 @@ const axios = require('axios');
 const initializeWhatsAppClient = async (location_identifier, user_id) => {
     console.log(`Initializing WhatsApp client for ${location_identifier} by user ${user_id}...`);
 
-    // Create an instance of SQLiteStore for the session
-    const store = new SQLiteStore(location_identifier);
+    // Create an instance of PostgreSQLStore for the session
+    const store = new PostgreSQLStore(location_identifier);
 
     try {
         // Ensure the database is initialized before creating the client

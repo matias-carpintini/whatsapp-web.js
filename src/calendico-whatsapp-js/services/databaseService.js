@@ -1,86 +1,87 @@
-const sqlite3 = require('sqlite3').verbose();
-const dbPath = 'whatsapp_sessions.db';
+const { Pool } = require('pg');
 
-class SQLiteStore {
+const dbConfig = {
+    user: process.env.DB_USER,
+    host: process.env.DB_HOST,
+    database: process.env.DB_DATABASE,
+    password: process.env.DB_PASSWORD,
+    port: process.env.DB_PORT,
+};
+
+class PostgreSQLStore {
     constructor(sessionName) {
         this.sessionName = sessionName;
-        this.db = new sqlite3.Database(dbPath, (err) => {
-            if (err) {
-                console.error(err.message);
-            } else {
-                console.log('Connected to the SQLite database.');
-            }
-        });
+        console.log("------------------");
+        console.log('Creating PostgreSQLStore');
+        console.log('dbConfig:', dbConfig);
+        console.log("------------------");
+        this.pool = new Pool(dbConfig);
     }
 
     async initializeDatabase() {
-        return new Promise((resolve, reject) => {
-            this.db.run(`CREATE TABLE IF NOT EXISTS sessions (
-                                                                 session_name TEXT PRIMARY KEY,
-                                                                 session_data TEXT NOT NULL
-                         )`, (err) => {
-                if (err) {
-                    console.error('Error creating sessions table:', err.message);
-                    reject(err);
-                } else {
-                    resolve();
-                }
-            });
-        });
+        //const client = await this.pool.connect();
+        try {
+            await this.pool.query(`CREATE TABLE IF NOT EXISTS sessions (
+                                    session_name TEXT PRIMARY KEY,
+                                    session_data TEXT NOT NULL
+                                )`);
+        } catch (err) {
+            console.error('Error creating sessions table:', err.message);
+            throw err;
+        } finally {
+            //client.release();
+        }
     }
 
     async save(data) {
-        return new Promise((resolve, reject) => {
-            const query = `INSERT INTO sessions (session_name, session_data) VALUES (?, ?)
-                ON CONFLICT(session_name) DO UPDATE SET session_data = excluded.session_data;`;
-            this.db.run(query, [this.sessionName, JSON.stringify(data)], (err) => {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve();
-                }
-            });
-        });
+        //const client = await this.pool.connect();
+        try {
+            await this.pool.query(`INSERT INTO sessions (session_name, session_data)
+                                VALUES ($1, $2)
+                                ON CONFLICT (session_name) 
+                                DO UPDATE SET session_data = EXCLUDED.session_data`,
+                [this.sessionName, JSON.stringify(data)]);
+        } catch (err) {
+            throw err;
+        } finally {
+            //client.release();
+        }
     }
 
     async delete() {
-        return new Promise((resolve, reject) => {
-            const query = 'DELETE FROM sessions WHERE session_name = ?';
-            this.db.run(query, [this.sessionName], (err) => {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve();
-                }
-            });
-        });
+        //const client = await this.pool.connect();
+        try {
+            await this.pool.query('DELETE FROM sessions WHERE session_name = $1', [this.sessionName]);
+        } catch (err) {
+            throw err;
+        } finally {
+            //client.release();
+        }
     }
 
     async sessionExists() {
-        return new Promise((resolve, reject) => {
-            const query = 'SELECT 1 FROM sessions WHERE session_name = ?';
-            this.db.get(query, [this.sessionName], (err, row) => {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve(!!row);
-                }
-            });
-        });
+        const client = await this.pool.connect();
+        try {
+            const result = await client.query('SELECT 1 FROM sessions WHERE session_name = $1', [this.sessionName]);
+            return result.rowCount > 0;
+        } catch (err) {
+            throw err;
+        } finally {
+            client.release();
+        }
     }
 
     async extract() {
-        return new Promise((resolve, reject) => {
-            const query = 'SELECT session_data FROM sessions WHERE session_name = ?';
-            this.db.get(query, [this.sessionName], (err, row) => {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve(row ? JSON.parse(row.session_data) : null);
-                }
-            });
-        });
+        const client = await this.pool.connect();
+        try {
+            const result = await client.query('SELECT session_data FROM sessions WHERE session_name = $1', [this.sessionName]);
+            return result.rows.length > 0 ? JSON.parse(result.rows[0].session_data) : null;
+        } catch (err) {
+            throw err;
+        } finally {
+            client.release();
+        }
     }
 }
 
-module.exports = SQLiteStore;
+module.exports = PostgreSQLStore;
