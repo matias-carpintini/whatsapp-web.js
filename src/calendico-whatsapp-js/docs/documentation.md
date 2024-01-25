@@ -1,10 +1,23 @@
 # Project Title
 
 ## Table of Contents
+- [Database](#database)
 - [Entry point](#entry_point)
 - [Endpoints](#endpoints)
 - [The whatsapp-web.js library](#the-whatsapp-web-js-library)
 - [Problems encountered](#problems-encountered)
+
+## Database
+- The database used is PostgreSQL.
+- You need to create a DB called `whatsapp_web_js`and a `.env` file in the root of the project, next to the `.env.example` with this content:
+    ```
+    DB_USER=your_user
+    DB_HOST=localhost
+    DB_DATABASE=whatsapp_web_js
+    DB_PASSWORD=your_pass
+    DB_PORT=5432
+    ```
+- When deployed to Heroku, the values will be taken from the ENV variables.
 
 ## Entry point
 - The entry point for the project is [`src/calendico-whatsapp-js/app.js`](../app.js).
