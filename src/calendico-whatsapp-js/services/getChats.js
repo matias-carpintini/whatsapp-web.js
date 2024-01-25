@@ -1,7 +1,7 @@
 const { getClient } = require('./../clients/ClientsConnected');
 const { extractNumber } = require('../utils/utilities');
 
-async function getChats(location_identifier, chats_to_get, res) {
+async function getChats(location_identifier, chats_to_get, res, return_raw_chats = false) {
     if (!location_identifier) {
         return res.status(400).json({success: false, message: 'The location identifier is required'});
     }
@@ -13,6 +13,9 @@ async function getChats(location_identifier, chats_to_get, res) {
         }
         else {
             const chats = await client.getChats();
+            if (return_raw_chats) {
+                return chats;
+            }
             console.log('============================================');
             console.log(`There are ${chats.length} chats`);
             createChatJSONObject(chats, Number(chats_to_get))
