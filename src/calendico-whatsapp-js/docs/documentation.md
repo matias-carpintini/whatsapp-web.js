@@ -85,6 +85,32 @@
                                    ]
                       }
             ```
+  5`/contacts` (GET)
+     - This endpoint is used to get all the contacts from the chats of the location:
+         - The request is a get request with the following query params (for location 13)
+             1. location_identifier=13
+         - The response is a JSON object with the following fields:
+           ```JSON
+             "code": 200,
+             "status": "success",
+             "body": [
+                      {
+                        "id": {
+                                "server": "c.us",
+                                "user": "5493815879150",
+                                "_serialized": "5493815879150@c.us"
+                              },
+                        "isMe": false,
+                        "name": "Miguel Tuc",
+                        "pushname": "Tucu Gomez",
+                        "shortName": "Miguel Tuc",
+                        "number": "5493815879150",
+                        "isGroup": false,
+                        "isMyContact": true,
+                        "isWAContact": true
+                      },
+                      ...
+           ```
 
 ## The whatsapp-web.js library
 - These are the official docs for the library: https://docs.wwebjs.dev/ and this is the starting guide: https://wwebjs.dev/guide/.
