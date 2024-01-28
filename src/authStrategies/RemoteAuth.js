@@ -1,5 +1,4 @@
 'use strict';
-const { removeClient } = require('./../calendico-whatsapp-js/clients/ClientsConnected');
 
 /* Require Optional Dependencies */
 try {
@@ -21,7 +20,7 @@ const BaseAuthStrategy = require('./BaseAuthStrategy');
  * @param {object} options - options
  * @param {object} options.store - Remote database store instance
  * @param {string} options.clientId - Client id to distinguish instances if you are using multiple, otherwise keep null if you are using only one instance
- * @param {string} options.dataPath - Change the default path for saving session files, default is: "./.wwebjs_auth/" 
+ * @param {string} options.dataPath - Change the default path for saving session files, default is: "./.wwebjs_auth/"
  * @param {number} options.backupSyncIntervalMs - Sets the time interval for periodic session backups. Accepts values starting from 60000ms {1 minute}
  */
 class RemoteAuth extends BaseAuthStrategy {
@@ -94,11 +93,6 @@ class RemoteAuth extends BaseAuthStrategy {
             }).catch((error) => {
                 console.error('Error deleting userDataDir:', error);
             });
-            await fs.promises.unlink(`${this.userDataDir}/${this.sessionName}.zip`)
-                .catch((error) => {
-                    console.error('Error deleting session zip file:', error);
-                });
-            removeClient(this.clientId);
         }
         clearInterval(this.backupSync);
     }
@@ -125,7 +119,7 @@ class RemoteAuth extends BaseAuthStrategy {
         if (pathExists) {
             await this.compressSession();
             await this.store.save({session: this.sessionName});
-            //await fs.promises.unlink(`${this.userDataDir}/${this.sessionName}.zip`);
+            await fs.promises.unlink(`${this.sessionName}.zip`);
             await fs.promises.rm(`${this.tempDir}`, {
                 recursive: true,
                 force: true
@@ -138,7 +132,7 @@ class RemoteAuth extends BaseAuthStrategy {
         console.log('----------------------------------------------------------------------------------------------');
         console.log('start extractRemoteSession');
         const pathExists = await this.isValidPath(this.userDataDir);
-        const compressedSessionPath = `${this.dataPath}/${this.sessionName}.zip`;
+        const compressedSessionPath = `${this.sessionName}.zip`;
         const sessionExists = await this.store.sessionExists({session: this.sessionName});
         console.log('----------------------------------------------------------------------------------------------');
         console.log('pathExists: ', pathExists);
@@ -171,56 +165,19 @@ class RemoteAuth extends BaseAuthStrategy {
     async compressSession() {
         console.log('----------------------------------------------------------------------------------------------');
         console.log('start compressSession');
-        await deleteFileIfExists(this.dataPath, `${this.sessionName}.zip`)
-            .catch(error => console.error(`Error deleting ${this.dataPath}/${this.sessionName}.zip:`, error));
-        
         const archive = archiver('zip');
-        const stream = fs.createWriteStream(`${this.dataPath}/${this.sessionName}.zip`);
-        console.log('Starting compression process...');
-        try {
-            await fs.copy(this.userDataDir, this.tempDir);
-            console.log('Data copied to temporary directory.');
-        } catch (copyError) {
-            console.error('Error copying data to temporary directory:', copyError);
-            throw copyError; // Rethrowing the error or handle it as needed
-        }
+        const stream = fs.createWriteStream(`${this.sessionName}.zip`);
 
-        try {
-            await this.deleteMetadata();
-            console.log('Metadata deleted.');
-        } catch (deleteMetaError) {
-            console.error('Error deleting metadata:', deleteMetaError);
-            //throw deleteMetaError; // Rethrowing the error or handle it as needed
-        }
-
+        await fs.copy(this.userDataDir, this.tempDir).catch(() => {});
+        await this.deleteMetadata();
         return new Promise((resolve, reject) => {
             archive
                 .directory(this.tempDir, false)
-                .on('error', err => {
-                    console.error('Archiving error:', err);
-                    reject(err);
-                })
+                .on('error', err => reject(err))
                 .pipe(stream);
 
-            stream.on('close', () => {
-                console.log(`ZIP file should be created at: ${this.dataPath}/${this.sessionName}.zip`);
-                resolve();
-            });
-
-            archive.on('warning', (warning) => {
-                console.warn('Warning during archiving:', warning);
-            });
-
-            archive.on('error', (error) => {
-                console.error('Error during archiving:', error);
-                reject(error);
-            });
-
-            archive.finalize().then(() => {
-                console.log('Archive finalize called.');
-            }).catch((error) => {
-                console.error('Error in finalize:', error);
-            });
+            stream.on('close', () => resolve());
+            archive.finalize();
         });
     }
 
@@ -234,8 +191,9 @@ class RemoteAuth extends BaseAuthStrategy {
                 .on('finish', () => resolve());
         });
         console.log('----------------------------------------------------------------------------------------------');
-        console.log('compressedSessionPath: ', compressedSessionPath);
+        console.log('await fs.promises.unlink(compressedSessionPath): ', compressedSessionPath);
         console.log('----------------------------------------------------------------------------------------------');
+        await fs.promises.unlink(compressedSessionPath);
     }
 
     async deleteMetadata() {
@@ -274,27 +232,6 @@ class RemoteAuth extends BaseAuthStrategy {
 
     async delay(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
-    }
-}
-
-async function deleteFileIfExists(dataPath, archiveName) {
-    const filePath = path.join(dataPath, `${archiveName}.zip`);
-
-    try {
-        // Check if the file exists
-        await fs.promises.access(filePath, fs.constants.F_OK);
-        // If the file exists, the above line will succeed, and the next line will be executed
-        await fs.promises.unlink(filePath);
-        console.log(`File ${filePath} deleted successfully`);
-    } catch (error) {
-        // If the file does not exist, an error will be thrown
-        if (error.code === 'ENOENT') {
-            // File does not exist, handle it as needed
-            console.log(`File ${filePath} does not exist`);
-        } else {
-            // Other errors (e.g., permission issues)
-            throw error;
-        }
     }
 }
 
