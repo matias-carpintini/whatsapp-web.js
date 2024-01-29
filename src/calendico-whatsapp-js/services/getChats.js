@@ -1,5 +1,6 @@
 const { getClient } = require('./../clients/ClientsConnected');
 const { extractNumber } = require('../utils/utilities');
+const {getClientInitializing} = require('../clients/ClientsInitializingSession');
 
 async function getChats(location_identifier, chats_to_get, res, return_raw_chats = false) {
     if (!location_identifier) {
@@ -9,6 +10,15 @@ async function getChats(location_identifier, chats_to_get, res, return_raw_chats
     try {
         const client = getClient(location_identifier);
         if (!client) {
+            if (getClientInitializing(location_identifier)) {
+                console.log('============================================');
+                console.log('Client is initializing...');
+                console.log('============================================');
+                return res.status(400).json({
+                    success: false,
+                    message: 'Client is already initializing. Please try again in a few seconds.'
+                });
+            }
             return res.status(400).json({success: false, message: `There is no client with this location_identifier: ${location_identifier}`});
         }
         else {

@@ -1,35 +1,6 @@
-const { Client, RemoteAuth } = require('./../../../index.js');
-//const PostgreSQLStore = require('./databaseService');
-const { AwsS3Store } = require('wwebjs-aws-s3');
-const {
-    S3Client,
-    PutObjectCommand,
-    HeadObjectCommand,
-    GetObjectCommand,
-    DeleteObjectCommand
-} = require('@aws-sdk/client-s3');
+const { Client, LocalAuth } = require('./../../../index.js');
+const { addClientInitializing, getClientsInitializing, removeClientInitializing } = require('../clients/ClientsInitializingSession');
 
-const s3 = new S3Client({
-    region: process.env.AWS_S3_REGION,
-    credentials: {
-        accessKeyId: process.env.AWS_S3_ACCESS_KEY_ID,
-        secretAccessKey: process.env.AWS_S3_SECRET_ACCES_KEY_ID
-    }
-});
-const putObjectCommand = PutObjectCommand;
-const headObjectCommand = HeadObjectCommand;
-const getObjectCommand = GetObjectCommand;
-const deleteObjectCommand = DeleteObjectCommand;
-
-const store = new AwsS3Store({
-    bucketName: process.env.AWS_S3_BUCKET_NAME,
-    remoteDataPath: process.env.AWS_S3_FOLDER_NAME,
-    s3Client: s3,
-    putObjectCommand,
-    headObjectCommand,
-    getObjectCommand,
-    deleteObjectCommand
-});
 const qrcodeTerminal = require('qrcode-terminal');
 const { addClient } = require('./../clients/ClientsConnected');
 const { extractNumber } = require('../utils/utilities');
@@ -37,7 +8,9 @@ const axios = require('axios');
 
 const initializeWhatsAppClient = async (location_identifier, user_id) => {
     console.log(`Initializing WhatsApp client for ${location_identifier} by user ${user_id}...`);
-
+    addClientInitializing(location_identifier, true);
+    
+    console.log(`clients initializing: ${JSON.stringify(getClientsInitializing(), null, 2)}`);
     // Create an instance of PostgreSQLStore for the session
     //const store = new PostgreSQLStore(location_identifier);
 
@@ -54,11 +27,8 @@ const initializeWhatsAppClient = async (location_identifier, user_id) => {
         // });
 
         const client = new Client({
-            authStrategy: new RemoteAuth({
+            authStrategy: new LocalAuth({
                 clientId: location_identifier,
-                dataPath: './.wwebjs_auth',
-                store: store,
-                backupSyncIntervalMs: 3 * (60 * 1000) // Optional: Sync interval in milliseconds
             })
         });
 
@@ -124,6 +94,7 @@ const setupClientEventListeners = (client, location_identifier, user_id) => {
     client.on('ready', async () => {
         console.log('1----------------------------------------------------------------------------------------------');
         console.log(`WhatsApp client is ready for ${location_identifier}!`);
+        removeClientInitializing(location_identifier);
         const client_number = client.info.wid.user;
         const client_platform = client.info.platform;
         const client_pushname = client.info.pushname;
@@ -184,6 +155,22 @@ const setupClientEventListeners = (client, location_identifier, user_id) => {
         console.log('Message ack:', ack);
         console.log('2----------------------------------------------------------------------------------------------');
         notifyMessageStatus({ message_serialized_id: msg.id._serialized, message_status: msg.ack });
+    });
+
+    process.on('SIGINT', async () => {
+        console.log('(SIGINT) Shutting down...');
+        await client.destroy();
+        // add delay to wait for the client to be destroyed
+        setTimeout(() => {
+            console.log('after destroying client');
+            process.exit(0);
+        }, 3000);
+        console.log('after destroying client');
+        process.exit(0);
+    });
+
+    client.on('loading_screen', (percent, message) => {
+        console.log('LOADING SCREEN: ', percent, message);
     });
 };
 

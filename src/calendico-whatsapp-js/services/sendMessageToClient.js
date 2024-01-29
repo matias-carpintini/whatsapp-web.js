@@ -1,10 +1,20 @@
 const { initializeWhatsAppClient } = require('./whatsappService');
 const { getClient } = require('./../clients/ClientsConnected');
+const { getClientInitializing } = require('../clients/ClientsInitializingSession');
 
 async function send_message_to_client(location_identifier, res, receiver_phone, message) {
     try {
         const client = getClient(location_identifier);
-        if (!client) {
+        if (!client || getClientInitializing(location_identifier)) {
+            if (getClientInitializing(location_identifier)) {
+                console.log('============================================');
+                console.log('Client is already initializing...');
+                console.log('============================================');
+                return res.status(400).json({
+                    success: false,
+                    message: 'Client is already initializing. Please try again in a few seconds.'
+                });
+            }
             // Initialize client if not already done
             console.log('============================================');
             console.log('Client not initialized yet. Initializing...');
@@ -12,7 +22,7 @@ async function send_message_to_client(location_identifier, res, receiver_phone, 
             await initializeWhatsAppClient(location_identifier, 'automatic_reconnect');
             return res.status(400).json({
                 success: false,
-                message: "Client not initialized yet. Please try again after re connecting the session. We'll try to reconnect the session automatically."
+                message: 'Client not initialized yet. Please try again after re connecting the session. We\'ll try to reconnect the session automatically.'
             });
         }
         const client_state = await client.getState().catch(error => {
