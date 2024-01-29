@@ -30,7 +30,6 @@ async function getChats(location_identifier, chats_to_get, res, return_raw_chats
             console.log(`There are ${chats.length} chats`);
             createChatJSONObject(chats, Number(chats_to_get))
                 .then(chatJSONObject => {
-                    console.log(JSON.stringify(chatJSONObject, null, 2));
                     return res.status(200).json({code: 200, status: 'success', body: chatJSONObject});
                 })
                 .catch(error => {

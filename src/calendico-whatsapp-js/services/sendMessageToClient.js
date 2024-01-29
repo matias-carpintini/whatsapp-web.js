@@ -49,10 +49,6 @@ async function send_message_to_client(location_identifier, res, receiver_phone, 
                 console.log('============================================');
                 const archive_result = await chat.archive();
                 console.log(`archive_result: ${archive_result}`);
-                //chat = await messageObject.getChat();
-                console.log('============================================');
-                console.log('messageObject:', messageObject);
-                console.log('============================================');
                 res.json({ 
                     success: true,
                     from: messageObject.from,

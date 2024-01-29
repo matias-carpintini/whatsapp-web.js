@@ -1,34 +1,56 @@
-const { Client, LocalAuth } = require('./../../../index.js');
+const { Client, RemoteAuth } = require('./../../../index.js');
 const { addClientInitializing, getClientsInitializing, removeClientInitializing } = require('../clients/ClientsInitializingSession');
 
 const qrcodeTerminal = require('qrcode-terminal');
 const { addClient } = require('./../clients/ClientsConnected');
 const { extractNumber } = require('../utils/utilities');
 const axios = require('axios');
+const { AwsS3Store } = require('wwebjs-aws-s3');
+const {
+    S3Client,
+    PutObjectCommand,
+    HeadObjectCommand,
+    GetObjectCommand,
+    DeleteObjectCommand
+} = require('@aws-sdk/client-s3');
+
+const s3 = new S3Client({
+    region: process.env.AWS_S3_REGION,
+    credentials: {
+        accessKeyId: process.env.AWS_S3_ACCESS_KEY_ID,
+        secretAccessKey: process.env.AWS_S3_SECRET_ACCES_KEY_ID
+    }
+});
+
+const putObjectCommand = PutObjectCommand;
+const headObjectCommand = HeadObjectCommand;
+const getObjectCommand = GetObjectCommand;
+const deleteObjectCommand = DeleteObjectCommand;
+
+const store = new AwsS3Store({
+    bucketName: process.env.AWS_S3_BUCKET_NAME,
+    remoteDataPath: process.env.AWS_S3_FOLDER_NAME,
+    s3Client: s3,
+    putObjectCommand,
+    headObjectCommand,
+    getObjectCommand,
+    deleteObjectCommand
+});
+
 
 const initializeWhatsAppClient = async (location_identifier, user_id) => {
     console.log(`Initializing WhatsApp client for ${location_identifier} by user ${user_id}...`);
     addClientInitializing(location_identifier, true);
     
     console.log(`clients initializing: ${JSON.stringify(getClientsInitializing(), null, 2)}`);
-    // Create an instance of PostgreSQLStore for the session
-    //const store = new PostgreSQLStore(location_identifier);
 
     try {
-        // Ensure the database is initialized before creating the client
-        //await store.initializeDatabase();
-
-        // const client = new Client({
-        //     authStrategy: new RemoteAuth({
-        //         store: store,
-        //         clientId: location_identifier,
-        //         backupSyncIntervalMs: 2 * (60 * 1000) // Optional: Sync interval in milliseconds
-        //     })
-        // });
-
         const client = new Client({
-            authStrategy: new LocalAuth({
+            authStrategy: new RemoteAuth({
                 clientId: location_identifier,
+                dataPath: './.wwebjs_auth',
+                store: store,
+                backupSyncIntervalMs: 3 * (60 * 1000) // Optional: Sync interval in milliseconds
             })
         });
 

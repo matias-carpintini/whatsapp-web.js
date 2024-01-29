@@ -20,8 +20,8 @@ async function getContacts(location_identifier, res) {
         }
 
         console.log('--------------');
-        console.log('Contacts array:');
-        console.log(contacts);
+        console.log('Contacts array size:');
+        console.log(contacts.length);
         console.log('--------------');
         return res.status(200).json({ code: 200, status: 'success', body: contacts });
     } catch (error) {
