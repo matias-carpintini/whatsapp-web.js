@@ -8,16 +8,7 @@
 - [Problems encountered](#problems-encountered)
 
 ## Database
-- The database used is PostgreSQL.
-- You need to create a DB called `whatsapp_web_js`and a `.env` file in the root of the project, next to the `.env.example` with this content:
-    ```
-    DB_USER=your_user
-    DB_HOST=localhost
-    DB_DATABASE=whatsapp_web_js
-    DB_PASSWORD=your_pass
-    DB_PORT=5432
-    ```
-- When deployed to Heroku, the values will be taken from the ENV variables.
+- No database is used. As we are using RemoteAuth, the session data is stored in a zip in our S3 bucket (see the `.env` file attached to the PR description).
 
 ## Entry point
 - The entry point for the project is [`src/calendico-whatsapp-js/app.js`](../app.js).
@@ -116,13 +107,21 @@
 - These are the official docs for the library: https://docs.wwebjs.dev/ and this is the starting guide: https://wwebjs.dev/guide/.
 - A directory called `calendar-whatsapp-js` is created in the `src` folder to make easier the updating of the `whatsapp-web.js` library.
 - The `Client` is imported from the library and is the object in charge of interacting with the WhatsApp web client using puppeteer.
-- In order to be able to restore sessions we are using a `RemoteAuth` strategy. This strategy is defined in [`src/calendico-whatsapp-js/strategies/RemoteAuth.js`](../strategies/RemoteAuth.js). This is the only way to be able to restore sessions when using multi session devices.
-- The `store` object passed into the `RemoteAuth` strategy is defined in [`src/calendico-whatsapp-js/services/databaseService.js`](../services/databaseService.js). This is the object that will be used to store the session data. It only stores an object like: `{session: `RemoteAuth-${location_identifier}`}`.
-- The library uses these two folders to store the session data and this DB:
-  1. `src/calendico-whatsapp-js/.wwebjs_auth`: This folder is used to store the session data for the `RemoteAuth` strategy.
-  2. `src/calendico-whatsapp-js/.wwebjs_cache`: This folder is used to store the session data for the `LocalAuth` strategy.
-  3. `src/calendico-whatsapp-js/whatsapp_sessions.db`: This file is the SQLite3 database used to store the session data for the `LocalAuth` strategy.
-    - Note: these 3 objects can be deleted to start the login process from scratch.
+- In order to be able to restore sessions we are using a `RemoteAuth` strategy. This strategy is defined in [`src/calendico-whatsapp-js/strategies/RemoteAuth.js`](../strategies/RemoteAuth.js). This is the only way to be able to restore sessions when using multi session devices and not using local storage.
+- The cycle of the `RemoteAuth` strategy is:
+  1. The `RemoteAuth` strategy is initialized with the `store` object and the `session` object.
+  2. The `store` object is used to store the session data in a zip file in our S3 bucket.
+  3. The `session` object is used to restore the session from the zip file in our S3 bucket.
+  4. The `RemoteAuth` strategy is passed into the `Client` object.
+  5. The `Client` object is initialized with the `RemoteAuth` strategy.
+  6. The `Client` object is returned to the caller.
+- The `store` object passed into the `RemoteAuth` strategy is the [`AWS S3 Store`](https://wwebjs.dev/guide/authentication.html#aws-s3-store) object defined in the `whatsapp-web.js` library docs.
+- We are using our S3 bucket, the credentials are defined in the `.env` file attached to the PR description.
+- The sessions files are stored in  the `whatsapp-js` folder in the S3 bucket.
+- The library uses these two folders to store the local session data:
+  1. `src/calendico-whatsapp-js/.wwebjs_auth`
+  2. `src/calendico-whatsapp-js/.wwebjs_cache`
+    - Note: these 2 objects can be deleted to start the login process from scratch.
 
 ## Events
 - The client object listens to events emitted by the `whatsapp-web.js` library.
@@ -167,8 +166,11 @@
 
 ## Problems encountered
 - Sometimes the messages are sent but they are not received by the receiver. The message has only one tick, it even appears in the chat but the receiver does not receive it.
+  - We are already handling this monitoring the `ack` property of the message. If the message is not received within a few minutes we can retry to send it.
 - Sometimes the session doesn't get recovered.
-- A lost session scenario might be handled but we need rails to be able to react to new QR codes sent to restore the session.
+  - We discovered that, for the session to be re stored without having to scan the QR code again, the data must be synchronized and this takes anywhere from 2 to 5 minutes,  perhaps more, depending on the size of the messages to  store. For example, my regular session weights 32Mb and my test session weights 1.5Mb. The test session is restored in 2 minutes and the regular session in 5 minutes, girve  or take.
+- The need to  scan a new QR code demands having a modal in the frontend to show the user a message asking them to scan the QR code again.
+  
 
 
 ## Flaky errors
