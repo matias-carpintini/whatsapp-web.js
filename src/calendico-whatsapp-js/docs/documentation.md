@@ -167,7 +167,6 @@
     ```
 
 ## ENV variables
-
 - The `.env` file should have this data:
   ```
      AWS_S3_REGION=us-east-2
