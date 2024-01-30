@@ -1,1 +1,1 @@
-web: node calendico-whatsapp-js/app.js
+web: node src/calendico-whatsapp-js/app.js
