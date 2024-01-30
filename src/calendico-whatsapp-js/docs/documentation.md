@@ -5,7 +5,9 @@
 - [Entry point](#entry_point)
 - [Endpoints](#endpoints)
 - [The whatsapp-web.js library](#the-whatsapp-web-js-library)
+- [ENV variables](#env-variables)
 - [Problems encountered](#problems-encountered)
+- [Flaky errors](#flaky-errors)
 
 ## Database
 - No database is used. As we are using RemoteAuth, the session data is stored in a zip in our S3 bucket (see the `.env` file attached to the PR description).
@@ -163,6 +165,19 @@
       message serialized_id: true_5493815879150@c.us_3EB0D0AC7CBC42DA0FB680 
       message ack value:     3
     ```
+
+## ENV variables
+- The `.env` file should have this data:
+  ```
+     AWS_S3_REGION=us-east-2
+     AWS_S3_ACCESS_KEY_ID=xxxxx
+     AWS_S3_SECRET_ACCES_KEY_ID=xxxx
+     AWS_S3_BUCKET_NAME=waitery
+     AWS_S3_FOLDER_NAME=whatsapp-js
+     RAILS_APP_URL=http://localhost:
+     RAILS_APP_PORT=3000
+     RAILS_APP_ENDPOINT_SCOPE=/whatsapp_js
+  ```
 
 ## Problems encountered
 - Sometimes the messages are sent but they are not received by the receiver. The message has only one tick, it even appears in the chat but the receiver does not receive it.
