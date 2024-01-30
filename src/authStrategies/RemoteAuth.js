@@ -20,7 +20,7 @@ const BaseAuthStrategy = require('./BaseAuthStrategy');
  * @param {object} options - options
  * @param {object} options.store - Remote database store instance
  * @param {string} options.clientId - Client id to distinguish instances if you are using multiple, otherwise keep null if you are using only one instance
- * @param {string} options.dataPath - Change the default path for saving session files, default is: "./.wwebjs_auth/" 
+ * @param {string} options.dataPath - Change the default path for saving session files, default is: "./.wwebjs_auth/"
  * @param {number} options.backupSyncIntervalMs - Sets the time interval for periodic session backups. Accepts values starting from 60000ms {1 minute}
  */
 class RemoteAuth extends BaseAuthStrategy {
@@ -57,6 +57,10 @@ class RemoteAuth extends BaseAuthStrategy {
         this.userDataDir = dirPath;
         this.sessionName = sessionDirName;
 
+        console.log('----------------------------------------------------------------------------------------------');
+        console.log('this.userDataDir: ', this.userDataDir);
+        console.log('this.sessionName: ', this.sessionName);
+        console.log('----------------------------------------------------------------------------------------------');
         await this.extractRemoteSession();
 
         this.client.options.puppeteer = {
@@ -77,11 +81,18 @@ class RemoteAuth extends BaseAuthStrategy {
         await this.deleteRemoteSession();
 
         let pathExists = await this.isValidPath(this.userDataDir);
+        console.log('----------------------------------------------------------------------------------------------');
+        console.log('pathExists: ', pathExists);
+        console.log('this.userDataDir: ', this.userDataDir);
+        console.log('this.backupSync: ', this.backupSync);
+        console.log('----------------------------------------------------------------------------------------------');
         if (pathExists) {
             await fs.promises.rm(this.userDataDir, {
                 recursive: true,
                 force: true
-            }).catch(() => {});
+            }).catch((error) => {
+                console.error('Error deleting userDataDir:', error);
+            });
         }
         clearInterval(this.backupSync);
     }
@@ -101,6 +112,10 @@ class RemoteAuth extends BaseAuthStrategy {
     async storeRemoteSession(options) {
         /* Compress & Store Session */
         const pathExists = await this.isValidPath(this.userDataDir);
+        console.log('----------------------------------------------------------------------------------------------');
+        console.log('start storeRemoteSession');
+        console.log('pathExists: ', pathExists);
+        console.log('----------------------------------------------------------------------------------------------');
         if (pathExists) {
             await this.compressSession();
             await this.store.save({session: this.sessionName});
@@ -114,9 +129,18 @@ class RemoteAuth extends BaseAuthStrategy {
     }
 
     async extractRemoteSession() {
+        console.log('----------------------------------------------------------------------------------------------');
+        console.log('start extractRemoteSession');
         const pathExists = await this.isValidPath(this.userDataDir);
         const compressedSessionPath = `${this.sessionName}.zip`;
         const sessionExists = await this.store.sessionExists({session: this.sessionName});
+        console.log('----------------------------------------------------------------------------------------------');
+        console.log('pathExists: ', pathExists);
+        console.log('this.userDataDir: ', this.userDataDir);
+        console.log('sessionExists: ', sessionExists);
+        console.log('this.userDataDir: ', this.sessionName);
+        console.log('compressedSessionPath: ', compressedSessionPath);
+        console.log('----------------------------------------------------------------------------------------------');
         if (pathExists) {
             await fs.promises.rm(this.userDataDir, {
                 recursive: true,
@@ -132,11 +156,15 @@ class RemoteAuth extends BaseAuthStrategy {
     }
 
     async deleteRemoteSession() {
+        console.log('----------------------------------------------------------------------------------------------');
+        console.log('start deleteRemoteSession');
         const sessionExists = await this.store.sessionExists({session: this.sessionName});
         if (sessionExists) await this.store.delete({session: this.sessionName});
     }
 
     async compressSession() {
+        console.log('----------------------------------------------------------------------------------------------');
+        console.log('start compressSession');
         const archive = archiver('zip');
         const stream = fs.createWriteStream(`${this.sessionName}.zip`);
 
@@ -162,18 +190,24 @@ class RemoteAuth extends BaseAuthStrategy {
                 .on('error', err => reject(err))
                 .on('finish', () => resolve());
         });
+        console.log('----------------------------------------------------------------------------------------------');
+        console.log('await fs.promises.unlink(compressedSessionPath): ', compressedSessionPath);
+        console.log('----------------------------------------------------------------------------------------------');
         await fs.promises.unlink(compressedSessionPath);
     }
 
     async deleteMetadata() {
-        const sessionDirs = [this.tempDir, path.join(this.tempDir, 'Default')];
+        const sessionDirs = [path.join(this.tempDir, 'Default'), this.tempDir,];
+        console.log('----------------------------------------------------------------------------------------------');
+        console.log('sessionDirs: ', sessionDirs);
+        console.log('----------------------------------------------------------------------------------------------');
         for (const dir of sessionDirs) {
             const sessionFiles = await fs.promises.readdir(dir);
             for (const element of sessionFiles) {
                 if (!this.requiredDirs.includes(element)) {
                     const dirElement = path.join(dir, element);
                     const stats = await fs.promises.lstat(dirElement);
-    
+
                     if (stats.isDirectory()) {
                         await fs.promises.rm(dirElement, {
                             recursive: true,
