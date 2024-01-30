@@ -42,9 +42,7 @@ const store = new AwsS3Store({
 const initializeWhatsAppClient = async (location_identifier, user_id) => {
     console.log('=====================');
     console.log('railsAppBaseUrl');
-    console.log(process.env.RAILS_APP_URL);
-    console.log(process.env.RAILS_APP_ENDPOINT_SCOPE);
-    console.log(process.env.RAILS_APP_URL + process.env.RAILS_APP_ENDPOINT_SCOPE);
+    console.log(railsAppBaseUrl);
     console.log('=====================');
     console.log(`Initializing WhatsApp client for ${location_identifier} by user ${user_id}...`);
     addClientInitializing(location_identifier, true);
