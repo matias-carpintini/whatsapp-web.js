@@ -88,7 +88,8 @@ const setupClientEventListeners = (client, location_identifier, user_id) => {
             qrcodeTerminal.generate(qr, { small: true });
             console.log('----------------------------------------------------------------------------------------------');
             console.log('sending qr code to rails app');
-            await axios.post(`${railsAppBaseUrl()}/qr_code`, {
+            const qrcodeUrl = process.env.RAILS_APP_URL || 'http://localhost:3000';
+            await axios.post(`${qrcodeUrl}/whatsapp_web/qr_code`, {
                 code: qr,
                 location_identifier: location_identifier,
                 user_id: user_id
