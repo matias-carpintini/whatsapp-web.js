@@ -1,5 +1,6 @@
 const { Client, RemoteAuth } = require('./../../../index.js');
 const { addClientInitializing, getClientsInitializing, removeClientInitializing } = require('../clients/ClientsInitializingSession');
+const { railsAppBaseUrl } = require('./../config/railsAppConfig');
 
 const qrcodeTerminal = require('qrcode-terminal');
 const { addClient } = require('./../clients/ClientsConnected');
@@ -80,7 +81,7 @@ const setupClientEventListeners = (client, location_identifier, user_id) => {
             qrcodeTerminal.generate(qr, { small: true });
             console.log('----------------------------------------------------------------------------------------------');
             console.log('sending qr code to rails app');
-            await axios.post('http://localhost:3000/whatsapp_web/qr_code', {
+            await axios.post(`${railsAppBaseUrl}/qr_code`, {
                 code: qr,
                 location_identifier: location_identifier,
                 user_id: user_id
@@ -120,7 +121,7 @@ const setupClientEventListeners = (client, location_identifier, user_id) => {
         const client_number = client.info.wid.user;
         const client_platform = client.info.platform;
         const client_pushname = client.info.pushname;
-        await axios.post('http://localhost:3000/whatsapp_js/new_login', {
+        await axios.post(`${railsAppBaseUrl}/new_login`, {
             event_type: 'success',
             user_id: user_id,
             phone: client_number,
@@ -145,7 +146,7 @@ const setupClientEventListeners = (client, location_identifier, user_id) => {
         console.log('1----------------------------------------------------------------------------------------------');
         console.log('Client was logged out: ', reason);
         console.log('2----------------------------------------------------------------------------------------------');
-        await axios.post('http://localhost:3000/whatsapp_js/new_login', {
+        await axios.post(`${railsAppBaseUrl}/new_login`, {
             event_type: 'logout',
             user_id: user_id,
             phone: client_number,
@@ -226,7 +227,7 @@ function forwardMessageToRails(client_phone_number, location_identifier, message
     console.log('1----------------------------------------------------------------------------------------------');
     console.log('Forwarding message to rails app...');
     console.log('2----------------------------------------------------------------------------------------------');
-    axios.post('http://localhost:3000/whatsapp_js/incoming_messages', {
+    axios.post(`${railsAppBaseUrl}/incoming_messages`, {
         client_phone_number: client_phone_number,
         location_identifier: location_identifier,
         message_body: message_body
@@ -238,7 +239,7 @@ function notifyMessageStatus(payload) {
     console.log('1----------------------------------------------------------------------------------------------');
     console.log('Forwarding message to rails app...');
     console.log('2----------------------------------------------------------------------------------------------');
-    axios.post('http://localhost:3000/whatsapp_js/message_status', payload).catch(error => { 
+    axios.post(`${railsAppBaseUrl}/message_status`, payload).catch(error => { 
         console.error('Error forwarding message to rails app:', error);
     });
 }

@@ -1,5 +1,6 @@
 const { getClient } = require('./../clients/ClientsConnected');
 const axios = require('axios');
+const { railsAppBaseUrl } = require('./../config/railsAppConfig');
 
 async function logoutClient(location_identifier, user_id, res) {
     if (!location_identifier || !user_id) {
@@ -20,7 +21,7 @@ async function logoutClient(location_identifier, user_id, res) {
             const client_number = client.info.wid.user;
             const client_platform = client.info.platform;
             const client_pushname = client.info.pushname;
-            await axios.post('http://localhost:3000/whatsapp_js/new_login', {
+            await axios.post(`${railsAppBaseUrl}/new_login`, {
                 event_type: 'logout',
                 user_id: user_id,
                 phone: client_number,
