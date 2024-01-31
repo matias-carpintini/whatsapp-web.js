@@ -40,7 +40,7 @@ async function send_message_to_client(location_identifier, res, receiver_phone, 
             });
         } else {
             try {
-                const messageObject = await client.sendMessage(`${receiver_phone}@c.us`, message);
+                const messageObject = await client.sendMessage(`${receiver_phone}@c.us`, message, { linkPreview: false });
                 let chat = await messageObject.getChat();
                 console.log('============================================');
                 console.log('message:', message);
