@@ -39,6 +39,12 @@ async function send_message_to_client(location_identifier, res, receiver_phone, 
                 message: 'Client session expired. Please try again in a few seconds.'
             });
         } else {
+            console.log('============================================');
+            console.log('Sending message...');
+            console.log(`dont_preview_links: ${dont_preview_links}`);
+            console.log(`perview links: ${dont_preview_links}`)
+            console.log(`perview links: ${dont_preview_links == null}`)
+            console.log('============================================');
             try {
                 const messageObject = await client.sendMessage(`${receiver_phone}@c.us`, message, { linkPreview: (dont_preview_links == null) });
                 let chat = await messageObject.getChat();

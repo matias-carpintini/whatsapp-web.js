@@ -9,6 +9,11 @@ const { getContacts } = require('../services/getContacts');
 // Endpoint to send a message
 router.post('/send_message', async (req, res) => {
     const { location_identifier, receiver_phone, message, message_id, dont_preview_links } = req.body;
+    console.log('============================================');
+    console.log('received sending message...');
+    console.log(`dont_preview_links: ${dont_preview_links}`);
+    console.log('============================================');
+            
     return await send_message_to_client(location_identifier, res, receiver_phone, message, message_id, dont_preview_links);
 });
 
