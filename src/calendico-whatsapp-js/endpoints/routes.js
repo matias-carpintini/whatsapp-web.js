@@ -11,6 +11,7 @@ router.post('/send_message', async (req, res) => {
     const { location_identifier, receiver_phone, message, message_id, dont_preview_links } = req.body;
     console.log('============================================');
     console.log('received sending message...');
+    console.log(`req.body: ${req.body}`);
     console.log(`dont_preview_links: ${dont_preview_links}`);
     console.log('============================================');
             

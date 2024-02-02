@@ -2,7 +2,7 @@ const { initializeWhatsAppClient } = require('./whatsappService');
 const { getClient } = require('./../clients/ClientsConnected');
 const { getClientInitializing } = require('../clients/ClientsInitializingSession');
 
-async function send_message_to_client(location_identifier, res, receiver_phone, message, dont_preview_links) {
+async function send_message_to_client(location_identifier, res, receiver_phone, message, message_id, dont_preview_links) {
     try {
         const client = getClient(location_identifier);
         if (!client || getClientInitializing(location_identifier)) {
@@ -42,8 +42,8 @@ async function send_message_to_client(location_identifier, res, receiver_phone, 
             console.log('============================================');
             console.log('Sending message...');
             console.log(`dont_preview_links: ${dont_preview_links}`);
-            console.log(`perview links: ${dont_preview_links}`)
-            console.log(`perview links: ${dont_preview_links == null}`)
+            console.log(`perview links: ${dont_preview_links}`);
+            console.log(`perview links: ${dont_preview_links == null}`);
             console.log('============================================');
             try {
                 const messageObject = await client.sendMessage(`${receiver_phone}@c.us`, message, { linkPreview: (dont_preview_links == null) });
@@ -60,7 +60,8 @@ async function send_message_to_client(location_identifier, res, receiver_phone, 
                     from: messageObject.from,
                     to: messageObject.to,
                     message_body: messageObject.body,
-                    message: 'Message sent successfully', 
+                    message: 'Message sent successfully',
+                    message_id: message_id,
                     message_serialized_id: messageObject.id._serialized, 
                     message_status: messageObject.ack });
 
