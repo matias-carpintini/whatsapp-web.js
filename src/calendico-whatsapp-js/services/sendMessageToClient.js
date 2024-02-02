@@ -2,7 +2,7 @@ const { initializeWhatsAppClient } = require('./whatsappService');
 const { getClient } = require('./../clients/ClientsConnected');
 const { getClientInitializing } = require('../clients/ClientsInitializingSession');
 
-async function send_message_to_client(location_identifier, res, receiver_phone, message, sending_otp) {
+async function send_message_to_client(location_identifier, res, receiver_phone, message, dont_preview_links) {
     try {
         const client = getClient(location_identifier);
         if (!client || getClientInitializing(location_identifier)) {
@@ -40,7 +40,7 @@ async function send_message_to_client(location_identifier, res, receiver_phone, 
             });
         } else {
             try {
-                const messageObject = await client.sendMessage(`${receiver_phone}@c.us`, message, { linkPreview: (sending_otp == null) });
+                const messageObject = await client.sendMessage(`${receiver_phone}@c.us`, message, { linkPreview: (dont_preview_links == null) });
                 let chat = await messageObject.getChat();
                 console.log('============================================');
                 console.log('message:', message);
