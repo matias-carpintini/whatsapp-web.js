@@ -8,8 +8,8 @@ const { getContacts } = require('../services/getContacts');
 
 // Endpoint to send a message
 router.post('/send_message', async (req, res) => {
-    const { location_identifier, receiver_phone, message, message_id } = req.body;
-    return await send_message_to_client(location_identifier, res, receiver_phone, message, message_id);
+    const { location_identifier, receiver_phone, message, message_id, sending_otp } = req.body;
+    return await send_message_to_client(location_identifier, res, receiver_phone, message, message_id, sending_otp);
 });
 
 router.post('/login', (req, res) => {
