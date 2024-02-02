@@ -55,7 +55,7 @@ const initializeWhatsAppClient = async (location_identifier, user_id) => {
                 clientId: location_identifier,
                 dataPath: './.wwebjs_auth',
                 store: store,
-                backupSyncIntervalMs: 3 * (60 * 1000) // Optional: Sync interval in milliseconds
+                backupSyncIntervalMs: 15 * (60 * 1000) // Optional: Sync interval in milliseconds
             }),
             puppeteer: {
                 args: ['--no-sandbox'],
@@ -221,9 +221,7 @@ async function processMessage(client, location_identifier, message) {
 }
 
 function forwardMessageToRails(client_phone_number, location_identifier, message_body) {
-    console.log('1----------------------------------------------------------------------------------------------');
-    console.log('Forwarding message to rails app...');
-    console.log('2----------------------------------------------------------------------------------------------');
+    console.log('   [forwardMessageToRails] Forwarding message to rails app...');
     axios.post(`${railsAppBaseUrl()}/incoming_messages`, {
         client_phone_number: client_phone_number,
         location_identifier: location_identifier,
