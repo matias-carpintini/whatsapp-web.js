@@ -41,20 +41,11 @@ async function send_message_to_client(location_identifier, res, receiver_phone, 
         } else {
             console.log('============================================');
             console.log('Sending message...');
-            console.log(`dont_preview_links: ${dont_preview_links}`);
-            console.log(`perview links: ${dont_preview_links}`);
-            console.log(`perview links: ${dont_preview_links == null}`);
             console.log('============================================');
             try {
                 const messageObject = await client.sendMessage(`${receiver_phone}@c.us`, message, { linkPreview: (dont_preview_links == null) });
                 let chat = await messageObject.getChat();
-                console.log('============================================');
-                console.log('message:', message);
-                console.log('===================###########==========');
-                console.log('message ACK:', messageObject.ack);
-                console.log('============================================');
                 const archive_result = await chat.archive();
-                console.log(`archive_result: ${archive_result}`);
                 res.json({ 
                     success: true,
                     from: messageObject.from,
@@ -63,7 +54,9 @@ async function send_message_to_client(location_identifier, res, receiver_phone, 
                     message: 'Message sent successfully',
                     message_id: message_id,
                     message_serialized_id: messageObject.id._serialized, 
-                    message_status: messageObject.ack });
+                    message_status: messageObject.ack,
+                    message_archived: archive_result 
+                });
 
             } catch (error) {
                 console.error('Error:', error);
