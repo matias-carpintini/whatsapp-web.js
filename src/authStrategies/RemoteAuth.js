@@ -186,7 +186,9 @@ class RemoteAuth extends BaseAuthStrategy {
             await fs.promises.rm(this.userDataDir, {
                 recursive: true,
                 force: true
-            }).catch(() => {});
+            }).catch((error) => {
+                console.error('Error deleting existing userDataDir:', error);
+            });
         }
         if (sessionExists) {
             console.log('Extracting and decompressing session...');

@@ -53,12 +53,17 @@ const initializeWhatsAppClient = async (location_identifier, user_id) => {
         const client = new Client({
             authStrategy: new RemoteAuth({
                 clientId: location_identifier,
-                dataPath: './.wwebjs_auth',
+                //dataPath: './.wwebjs_auth',
                 store: store,
                 backupSyncIntervalMs: 15 * (60 * 1000) // Optional: Sync interval in milliseconds
             }),
+            restartOnAuthFail: true, // optional
             puppeteer: {
-                args: ['--no-sandbox'],
+                headless: true,
+                args: [
+                    '--no-sandbox',
+                    // other node args
+                ],
             },
         });
 

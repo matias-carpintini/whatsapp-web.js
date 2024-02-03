@@ -271,3 +271,45 @@ Error [ERR_HTTP_HEADERS_SENT]: Cannot set headers after they are sent to the cli
 }
 
 ```
+
+
+```
+    2024-02-02T22:41:28.896599+00:00 app[web.1]: ============================================
+    2024-02-02T22:41:28.896661+00:00 app[web.1]: Client not initialized yet. Initializing...
+    2024-02-02T22:41:28.896661+00:00 app[web.1]: ============================================
+    2024-02-02T22:41:28.896721+00:00 app[web.1]: =====================
+    2024-02-02T22:41:28.896766+00:00 app[web.1]: railsAppBaseUrl
+    2024-02-02T22:41:28.896828+00:00 app[web.1]: https://test.calendico.com/whatsapp_js
+    2024-02-02T22:41:28.896844+00:00 app[web.1]: =====================
+    2024-02-02T22:41:28.896864+00:00 app[web.1]: Initializing WhatsApp client for 12 by user automatic_reconnect...
+    2024-02-02T22:41:28.896948+00:00 app[web.1]: clients initializing: {
+    2024-02-02T22:41:28.896948+00:00 app[web.1]: "12": true
+    2024-02-02T22:41:28.896948+00:00 app[web.1]: }
+    2024-02-02T22:41:28.897499+00:00 app[web.1]: Initializing RemoteAuth with clientId: 12
+    2024-02-02T22:41:28.897617+00:00 app[web.1]: RemoteAuth initialized successfully.
+    2024-02-02T22:41:28.899130+00:00 app[web.1]: Executing beforeBrowserInitialized...
+    2024-02-02T22:41:28.899172+00:00 app[web.1]: ----------------------------------------------------------------------------------------------
+    2024-02-02T22:41:28.899191+00:00 app[web.1]: this.userDataDir set to: /app/.wwebjs_auth/RemoteAuth-12
+    2024-02-02T22:41:28.899207+00:00 app[web.1]: this.sessionName set to: RemoteAuth-12
+    2024-02-02T22:41:28.899222+00:00 app[web.1]: ----------------------------------------------------------------------------------------------
+    2024-02-02T22:41:28.899309+00:00 app[web.1]: Executing extractRemoteSession...
+    2024-02-02T22:41:28.903417+00:00 app[web.1]: Path is not valid: /app/.wwebjs_auth/RemoteAuth-12
+    2024-02-02T22:41:29.022428+00:00 app[web.1]: ----------------------------------------------------------------------------------------------
+    2024-02-02T22:41:29.022466+00:00 app[web.1]: Path exists check for extractRemoteSession: false
+    2024-02-02T22:41:29.022495+00:00 app[web.1]: Session exists check for extractRemoteSession: true
+    2024-02-02T22:41:29.022512+00:00 app[web.1]: Compressed session path: RemoteAuth-12.zip
+    2024-02-02T22:41:29.022528+00:00 app[web.1]: ----------------------------------------------------------------------------------------------
+    2024-02-02T22:41:29.022542+00:00 app[web.1]: Extracting and decompressing session...
+    2024-02-02T22:41:29.189886+00:00 app[web.1]: Executing unCompressSession...
+    2024-02-02T22:41:29.190200+00:00 app[web.1]: Decompressing session...
+    2024-02-02T22:41:29.301139+00:00 app[web.1]: Session decompressed successfully.
+    2024-02-02T22:41:29.301381+00:00 app[web.1]: Removing compressed session file...
+    2024-02-02T22:41:29.302129+00:00 app[web.1]: extractRemoteSession completed.
+    2024-02-02T22:41:29.302139+00:00 app[web.1]: beforeBrowserInitialized completed.
+    2024-02-02T22:41:47.612658+00:00 app[web.1]: QR code for 12: 2@4EyTLYQziilPU2cNFpDnnTVMnqWIfNr6+Z7ar5FAXtglSITYWKSHZfTPKsAAsk9m4qPxaavWd8yOqg==,E4ioqQnnXrrPmt6QHUlOl1kJz7tm+aQMHCzQxnX9l0Q=,o3n73iY3OOzZYnI7F7yWTgLPef/6r8NupJRLeNr6qyc=,N4LYWnbIwEt3vpmrslLORc7sS3z+GyYIZnrvSRwEYDk=,1
+    2024-02-02T22:41:47.612705+00:00 app[web.1]: ----------------------------------------------------------------------------------------------
+    2024-02-02T22:41:47.612706+00:00 app[web.1]: location_identifier: 12, user_id: automatic_reconnect
+    2024-02-02T22:41:47.612707+00:00 app[web.1]: ----------------------------------------------------------------------------------------------
+    2024-02-02T22:41:47.612707+00:00 app[web.1]: ----------------------------------------------------------------------------------------------
+    2024-02-02T22:41:47.693524+00:00 app[web.1]: ▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+```
