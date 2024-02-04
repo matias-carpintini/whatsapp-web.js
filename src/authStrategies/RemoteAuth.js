@@ -6,14 +6,14 @@ console.log('Starting to load required modules...');
 try {
     var fs = require('fs-extra');
     console.log('Loaded fs-extra module successfully.');
-    var unzipper = require('unzipper');
-    console.log('Loaded unzipper module successfully.');
+    var AdmZip = require('adm-zip');
+    console.log('Loaded AdmZip module successfully.');
     var archiver = require('archiver');
     console.log('Loaded archiver module successfully.');
 } catch {
     console.log('Failed to load one or more optional dependencies. Setting them to undefined.');
     fs = undefined;
-    unzipper = undefined;
+    AdmZip = undefined;
     archiver = undefined;
 }
 
@@ -37,9 +37,9 @@ console.log('Starting RemoteAuth class definition...');
 class RemoteAuth extends BaseAuthStrategy {
     constructor({ clientId, dataPath, store, backupSyncIntervalMs } = {}) {
         console.log('Initializing RemoteAuth with clientId:', clientId);
-        if (!fs && !unzipper && !archiver) {
+        if (!fs && !AdmZip && !archiver) {
             console.log('Error: Optional dependencies are missing.');
-            throw new Error('Optional Dependencies [fs-extra, unzipper, archiver] are required to use RemoteAuth. Make sure to run npm install correctly and remove the --no-optional flag');
+            throw new Error('Optional Dependencies [fs-extra, adm-zip, archiver] are required to use RemoteAuth. Make sure to run npm install correctly and remove the --no-optional flag');
         }
         super();
 
@@ -238,17 +238,18 @@ class RemoteAuth extends BaseAuthStrategy {
 
     async unCompressSession(compressedSessionPath) {
         console.log('Executing unCompressSession...');
-        var stream = fs.createReadStream(compressedSessionPath);
         await new Promise((resolve, reject) => {
             console.log('Decompressing session...');
-            stream.pipe(unzipper.Extract({
-                path: this.userDataDir
-            }))
-                .on('error', err => reject(err))
-                .on('finish', () => {
+            const zip = new AdmZip(compressedSessionPath, {});
+            zip.extractAllToAsync(this.userDataDir, false, false, (err) => {
+                if (err) {
+                    console.log('Session could not be decompressed. Error!.');
+                    reject(err);
+                } else {
                     console.log('Session decompressed successfully.');
                     resolve();
-                });
+                }
+            });
         });
         console.log('Removing compressed session file...');
         await fs.promises.unlink(compressedSessionPath);
