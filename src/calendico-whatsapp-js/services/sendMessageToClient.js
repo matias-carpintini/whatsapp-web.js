@@ -52,7 +52,8 @@ async function send_message_to_client(location_identifier, res, receiver_phone, 
                 console.log('chat: ', chat.archived);
                 console.log('============================================');
                 const archive_result = await chat.archive();
-                console.log('archive_result:', archive_result);
+                console.log('archive_result[0]:', archive_result[0]);
+                console.log('archive_result[1]:', archive_result[1]);
                 chat = await messageObject.getChat();
                 console.log('chat: ',  chat.archived);
                 console.log('============================================');
