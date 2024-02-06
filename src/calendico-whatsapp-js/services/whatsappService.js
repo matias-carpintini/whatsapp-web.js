@@ -56,7 +56,7 @@ const initializeWhatsAppClient = async (location_identifier, user_id) => {
                 clientId: location_identifier,
                 dataPath: './.wwebjs_auth',
                 store: store,
-                backupSyncIntervalMs: 3 * (60 * 1000) // Optional: Sync interval in milliseconds
+                backupSyncIntervalMs: 60 * (60 * 1000) // Optional: Sync interval in milliseconds
             }),
             //restartOnAuthFail: true, // optional
             puppeteer: {
