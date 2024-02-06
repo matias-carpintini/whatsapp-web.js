@@ -8,11 +8,10 @@ async function getContacts(location_identifier, res) {
 
     try {
         const chats = await getChats(location_identifier, 1, res, true);
-        console.log('============================================');
-        console.log(`There are ${chats.length} chats`);
-        console.log('============================================');
         let contacts = [];
-
+        if (chats === false){
+            return res.status(400).json({ success: false, message: 'We cannot get the contacts at this moment. Please try again later' });
+        } 
         for (const chat of chats) {
             const contact = await chat.getContact();
             const contact_info = contactPresenter(contact);

@@ -1,9 +1,10 @@
 const { Client, RemoteAuth } = require('./../../../index.js');
 const { addClientInitializing, getClientsInitializing, removeClientInitializing } = require('../clients/ClientsInitializingSession');
 const { railsAppBaseUrl } = require('./../config/railsAppConfig');
+const { getQrCodeDeliveries, addQrCodeDelivery, resetQrCodeDelivery, getQrCodeDelivery, incrementQrCodeDeliveryFor, maxQrCodeDeliveriesReached } = require('../clients/qrCodeDeliveries');
 
 const qrcodeTerminal = require('qrcode-terminal');
-const { addClient } = require('./../clients/ClientsConnected');
+const { addClient, removeClient } = require('./../clients/ClientsConnected');
 const { extractNumber } = require('../utils/utilities');
 const axios = require('axios');
 const { AwsS3Store } = require('wwebjs-aws-s3');
@@ -83,6 +84,16 @@ const initializeWhatsAppClient = async (location_identifier, user_id) => {
 
 const setupClientEventListeners = (client, location_identifier, user_id) => {
     client.on('qr', async (qr) => {
+        incrementQrCodeDelivery(location_identifier);
+        if (maxQrCodeDeliveriesReached(location_identifier)) {
+            console.log('Max QR code deliveries reached for location: ', location_identifier);
+            resetQrCodeDelivery(location_identifier);
+            removeClientInitializing(location_identifier);
+            await notifyMaxQrCodesReached(location_identifier);
+            client.destroy();
+            removeClient(location_identifier);
+            return;
+        }
         // Send QR code to Rails app instead of logging it
         console.log(`QR code for ${location_identifier}:`, qr);
         console.log('----------------------------------------------------------------------------------------------');
@@ -199,6 +210,15 @@ const setupClientEventListeners = (client, location_identifier, user_id) => {
     });
 };
 
+const incrementQrCodeDelivery = (location_identifier) => {
+    const qrCodeDelivery = getQrCodeDelivery(location_identifier);
+    if (qrCodeDelivery) {
+        incrementQrCodeDeliveryFor(location_identifier);
+    } else {
+        addQrCodeDelivery(location_identifier);
+    }
+}
+
 async function processMessage(client, location_identifier, message) {
     console.log('1----------------------------------------------------------------------------------------------');
     console.log('These are all the properties of the message object:');
@@ -235,12 +255,22 @@ function forwardMessageToRails(client_phone_number, location_identifier, message
         console.error('Error forwarding message to rails app:', error);
     });
 }
+
 function notifyMessageStatus(payload) {
     console.log('1----------------------------------------------------------------------------------------------');
     console.log('Forwarding message to rails app...');
     console.log('2----------------------------------------------------------------------------------------------');
     axios.post(`${railsAppBaseUrl()}/message_status`, payload).catch(error => { 
         console.error('Error forwarding message to rails app:', error);
+    });
+}
+
+async function notifyMaxQrCodesReached(location_identifier) {
+    await axios.post(`${railsAppBaseUrl()}/new_login`, {
+        event_type: 'max_qr_codes_reached',
+        location_identifier: location_identifier,
+    }).catch(error => {
+        console.error('Error sending ready event to rails app:', error);
     });
 }
 
