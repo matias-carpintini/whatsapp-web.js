@@ -1124,7 +1124,11 @@ class Client extends EventEmitter {
      * @returns {boolean}
      */
     async archiveChat(chatId) {
+        console.log("----++++++----++++++----++++++----++++++");
+        console.log('archiveChat(chatId)');
         return await this.pupPage.evaluate(async chatId => {
+            console.log("----++++++----++++++----++++++----++++++");
+            console.log('return await this.pupPage.evaluate(async chatId');
             let chat = await window.Store.Chat.get(chatId);
             console.log("----++++++----++++++----++++++----++++++");
             console.log('chat:');

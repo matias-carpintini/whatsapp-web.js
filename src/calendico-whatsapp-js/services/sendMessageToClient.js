@@ -49,11 +49,12 @@ async function send_message_to_client(location_identifier, res, receiver_phone, 
                 let chat = await messageObject.getChat();
                 console.log('============================================');
                 console.log('Message sent successfully');
-                console.log('chat:', chat.archived);
+                console.log('chat: ', chat.archived);
                 console.log('============================================');
                 const archive_result = await chat.archive();
                 console.log('archive_result:', archive_result);
-                console.log('chat:',  await messageObject.getChat().archived);
+                chat = await messageObject.getChat();
+                console.log('chat: ',  chat.archived);
                 console.log('============================================');
                 res.json({ 
                     success: true,
