@@ -5,7 +5,7 @@ const bodyParser = require('body-parser');
 const routes = require('./endpoints/routes'); // Import the routes
 
 const app = express();
-
+app.use(require("express-status-monitor")());
 app.use(bodyParser.json());
 
 // Use the routes from the routes file
