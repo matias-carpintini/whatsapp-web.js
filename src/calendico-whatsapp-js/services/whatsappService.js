@@ -51,6 +51,17 @@ const initializeWhatsAppClient = async (location_identifier, user_id) => {
     console.log(`clients initializing: ${JSON.stringify(getClientsInitializing(), null, 2)}`);
 
     try {
+        const puppeteerOptions = {
+            headless: true,
+            args: [
+                '--no-sandbox',
+                '--disable-setuid-sandbox',
+                // other node args
+            ]
+        };
+        if (process.env.CHROMIUM_EXECUTABLE_PATH) {
+            puppeteerOptions.executablePath = process.env.CHROMIUM_EXECUTABLE_PATH;
+        }
         const client = new Client({
             authStrategy: new RemoteAuth({
                 clientId: location_identifier,
@@ -59,13 +70,7 @@ const initializeWhatsAppClient = async (location_identifier, user_id) => {
                 backupSyncIntervalMs: 60 * (60 * 1000) // Optional: Sync interval in milliseconds
             }),
             //restartOnAuthFail: true, // optional
-            puppeteer: {
-                headless: true,
-                args: [
-                    '--no-sandbox', '--disable-setuid-sandbox',
-                    // other node args
-                ],
-            },
+            puppeteer: puppeteerOptions,
         });
 
         // Setup event listeners for the client
