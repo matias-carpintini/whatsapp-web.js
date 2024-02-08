@@ -76,10 +76,7 @@ async function send_message_to_client(
                     message,
                     { linkPreview: dont_preview_links == null }
                 );
-                let chat = await messageObject.getChat();
-                setTimeout(() => {
-                    chat.archive();
-                }, 5000);
+                await archiveChatAfterDelay(messageObject);
 
                 res.json({
                     success: true,
@@ -107,6 +104,12 @@ async function send_message_to_client(
             message: "Error sending message",
         });
     }
+}
+
+async function archiveChatAfterDelay(messageObject) {
+    let chat = await messageObject.getChat();
+    await new Promise(resolve => setTimeout(resolve, 5000));
+    chat.archive();
 }
 
 module.exports = { send_message_to_client };
