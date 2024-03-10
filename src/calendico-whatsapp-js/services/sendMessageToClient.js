@@ -11,7 +11,8 @@ async function send_message_to_client(
     receiver_phone,
     message,
     message_id,
-    dont_preview_links
+    dont_preview_links,
+    dont_archive_chat
 ) {
     try {
         const client = getClient(location_identifier);
@@ -76,7 +77,9 @@ async function send_message_to_client(
                     message,
                     { linkPreview: dont_preview_links == null }
                 );
-                await archiveChatAfterDelay(messageObject);
+                if (dont_archive_chat == null) {
+                    await archiveChatAfterDelay(messageObject);
+                }
 
                 res.json({
                     success: true,
