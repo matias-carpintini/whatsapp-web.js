@@ -79,6 +79,9 @@ async function send_message_to_client(
                 );
                 if (dont_archive_chat == null) {
                     await archiveChatAfterDelay(messageObject);
+                } 
+                else {
+                    await markChatAsUnreadAfterDelay(messageObject);
                 }
 
                 res.json({
@@ -113,6 +116,12 @@ async function archiveChatAfterDelay(messageObject) {
     let chat = await messageObject.getChat();
     await new Promise(resolve => setTimeout(resolve, 5000));
     chat.archive();
+}
+
+async function markChatAsUnreadAfterDelay(messageObject) {
+    let chat = await messageObject.getChat();
+    await new Promise(resolve => setTimeout(resolve, 3000));
+    chat.markUnread();
 }
 
 module.exports = { send_message_to_client };
