@@ -2,6 +2,7 @@ const { initializeWhatsAppClient} = require('./whatsappService');
 const { getClient } = require('./../clients/ClientsConnected');
 
 function loginClient(location_identifier, user_id, res) {
+    console.log(`Starting login process for ${location_identifier} by user_id: ${user_id}`);
     if (!location_identifier) {
         console.log('----------------------------------------------------------------------------------------------');
         console.log(`location_identifier: ${location_identifier}, user_id: ${user_id}`);
@@ -11,9 +12,13 @@ function loginClient(location_identifier, user_id, res) {
 
     try {
         const client = getClient(location_identifier);
+        console.log('----------------------------------------------------------------------------------------------');
+        console.log(`client: ${client}`);
         if (!client) {
+            console.log('Initializing client...');
             initializeWhatsAppClient(location_identifier, user_id); // Initializes client and handles QR code
         }
+        console.log('----------------------------------------------------------------------------------------------');
         res.status(200).json({code: 200, status: 'success', body: `Initialization process started for ${location_identifier}`});
     } catch (error) {
         console.error('Error in login process:', error);

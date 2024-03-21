@@ -8,7 +8,11 @@ const addClient = (location_identifier, clientInstance) => {
     clients[location_identifier] = clientInstance;
 };
 
-const getClient = (location_identifier) => clients[location_identifier];
+const getClient = (location_identifier) => {
+    console.log('location_identifier:', location_identifier);
+    console.log('clients:', clients);
+    return clients[location_identifier];
+};
 
 const removeClient = (location_identifier) => {
     if (clients[location_identifier]) {
