@@ -10,7 +10,7 @@ const addClient = (location_identifier, clientInstance) => {
 
 const getClient = (location_identifier) => {
     console.log('location_identifier:', location_identifier);
-    console.log('clients:', clients);
+    console.log(`clients keys: ${Object.keys(clients)}`);
     return clients[location_identifier];
 };
 
