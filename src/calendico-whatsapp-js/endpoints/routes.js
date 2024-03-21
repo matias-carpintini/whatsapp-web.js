@@ -14,6 +14,9 @@ router.post('/send_message', async (req, res) => {
 
 router.post('/login', (req, res) => {
     const { location_identifier,  user_id } = req.body;
+    console.log('----------------------------------------------------------------------------------------------');
+    console.log(`location_identifier: ${location_identifier}, user_id: ${user_id}`);
+    console.log('----------------------------------------------------------------------------------------------');
     return loginClient(location_identifier, user_id, res);
 });
 
