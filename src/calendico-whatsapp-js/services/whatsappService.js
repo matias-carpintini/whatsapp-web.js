@@ -53,6 +53,9 @@ const initializeWhatsAppClient = async (location_identifier, user_id) => {
     try {
         const puppeteerOptions = {
             headless: true,
+            authTimeoutMs: 3000000,
+            timeout: 3000000,
+            takeoverTimeoutMs: 3000000,             
             args: [
                 '--no-sandbox',
                 '--disable-setuid-sandbox',
@@ -62,7 +65,16 @@ const initializeWhatsAppClient = async (location_identifier, user_id) => {
         if (process.env.CHROMIUM_EXECUTABLE_PATH) {
             puppeteerOptions.executablePath = process.env.CHROMIUM_EXECUTABLE_PATH;
         }
+        
         const client = new Client({
+            authTimeoutMs: 3000000,
+            webVersion: "2.2409.2",
+            webVersionCache: {
+                type: "remote",
+                remotePath: "https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.2409.2.html",
+            },
+            timeout: 3000000,
+            takeoverTimeoutMs: 3000000, 
             authStrategy: new RemoteAuth({
                 clientId: location_identifier,
                 dataPath: './.wwebjs_auth',
@@ -77,6 +89,7 @@ const initializeWhatsAppClient = async (location_identifier, user_id) => {
         setupClientEventListeners(client, location_identifier, user_id);
 
         // Initialize the client
+
         client.initialize();
 
         // Store the client instance in the clients object
