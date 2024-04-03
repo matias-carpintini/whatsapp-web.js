@@ -68,11 +68,11 @@ const initializeWhatsAppClient = async (location_identifier, user_id) => {
         
         const client = new Client({
             authTimeoutMs: 3000000,
-            webVersion: "2.2409.2",
+            /*webVersion: "2.2409.2",
             webVersionCache: {
                 type: "remote",
                 remotePath: "https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.2409.2.html",
-            },
+            },*/
             timeout: 3000000,
             takeoverTimeoutMs: 3000000, 
             authStrategy: new RemoteAuth({

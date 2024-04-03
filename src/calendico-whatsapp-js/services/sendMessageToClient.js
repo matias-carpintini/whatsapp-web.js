@@ -96,11 +96,7 @@ async function send_message_to_client(
                     message_archived: true,
                 });
             } catch (error) {
-                console.error("Error:", error);
-                res.status(500).json({
-                    success: false,
-                    message: "Error sending message",
-                });
+                throw new Error(error);
             }
         }
     } catch (error) {
