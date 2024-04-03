@@ -63,6 +63,7 @@ const initializeWhatsAppClient = async (location_identifier, user_id) => {
             ]
         };
         if (process.env.CHROMIUM_EXECUTABLE_PATH) {
+            console.log('Using Chromium from', process.env.CHROMIUM_EXECUTABLE_PATH)
             puppeteerOptions.executablePath = process.env.CHROMIUM_EXECUTABLE_PATH;
         }
         
