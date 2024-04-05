@@ -48,7 +48,7 @@ const initializeWhatsAppClient = async (location_identifier, user_id) => {
     console.log(`Initializing WhatsApp client for ${location_identifier} by user ${user_id}...`);
     addClientInitializing(location_identifier, true);
     
-    console.log(`clients initializing: ${JSON.stringify(getClientsInitializing(), null, 2)}`);
+    console.log(`WAService => clients initializing: ${JSON.stringify(getClientsInitializing(), null, 2)}`);
 
     try {
         const puppeteerOptions = {

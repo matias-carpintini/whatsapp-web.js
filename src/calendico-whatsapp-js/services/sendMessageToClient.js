@@ -19,7 +19,7 @@ async function send_message_to_client(
         if (!client || getClientInitializing(location_identifier)) {
             if (getClientInitializing(location_identifier)) {
                 console.log("============================================");
-                console.log("Client is already initializing...");
+                console.log("Client is already initializing... (getClientInitializing OK)");
                 console.log("============================================");
                 return res.status(400).json({
                     success: false,

@@ -13,7 +13,7 @@ async function getChats(location_identifier, chats_to_get, res, return_raw_chats
         if (!client) {
             if (getClientInitializing(location_identifier)) {
                 console.log('============================================');
-                console.log('Client is initializing...');
+                console.log('Client is initializing... (getChats)');
                 console.log('============================================');
                 if (return_raw_chats) {
                     return false

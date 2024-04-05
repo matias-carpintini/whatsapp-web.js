@@ -11,6 +11,10 @@ const addClient = (location_identifier, clientInstance) => {
 const getClient = (location_identifier) => {
     console.log('location_identifier:', location_identifier);
     console.log(`clients keys: ${Object.keys(clients)}`);
+    console.log(`clients id:`, typeof clients[location_identifier]);
+    if (typeof clients[location_identifier] !== undefined) {
+        console.log(`logging clientid arr`, clients[location_identifier]);
+    }
     return clients[location_identifier];
 };
 
