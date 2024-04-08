@@ -777,8 +777,6 @@ class Client extends EventEmitter {
                 if(res.ok() && res.url() === WhatsWebURL) {
                     const indexHtml = await res.text();
                     this.currentIndexHtml = indexHtml;
-                } else {
-                    console.error(`initWebVersionCache/onReponse no same URL ${res.url()} != ${WhatsWebURL} or res.ok() is false`)
                 }
             });
         }
