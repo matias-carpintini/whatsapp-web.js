@@ -16,7 +16,7 @@ class LocalAuth extends BaseAuthStrategy {
 
         const idRegex = /^[-_\w]+$/i;
         if(clientId && !idRegex.test(clientId)) {
-            throw new Error('Invalid clientId. Only alphanumeric characters, underscores and hyphens are allowed.');
+            throw new Error('LocalAuth/constructor/Invalid clientId. Only alphanumeric characters, underscores and hyphens are allowed.');
         }
 
         this.dataPath = path.resolve(dataPath || './.wwebjs_auth/');
@@ -27,9 +27,9 @@ class LocalAuth extends BaseAuthStrategy {
         const puppeteerOpts = this.client.options.puppeteer;
         const sessionDirName = this.clientId ? `session-${this.clientId}` : 'session';
         const dirPath = path.join(this.dataPath, sessionDirName);
-
+        console.log('beforeBrowserInitialized/LocalAuth/dirPath:', dirPath);
         if(puppeteerOpts.userDataDir && puppeteerOpts.userDataDir !== dirPath) {
-            throw new Error('LocalAuth is not compatible with a user-supplied userDataDir.');
+            throw new Error('beforeBrowserInitialized/LocalAuth is not compatible with a user-supplied userDataDir.');
         }
 
         fs.mkdirSync(dirPath, { recursive: true });

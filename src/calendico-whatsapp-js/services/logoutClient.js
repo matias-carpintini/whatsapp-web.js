@@ -4,19 +4,18 @@ const { railsAppBaseUrl } = require('./../config/railsAppConfig');
 
 async function logoutClient(location_identifier, user_id, res) {
     if (!location_identifier || !user_id) {
-        console.log('----------------------------------------------------------------------------------------------');
-        console.log(`location_identifier: ${location_identifier}, user_id: ${user_id}`);
-        console.log('----------------------------------------------------------------------------------------------');
+        console.log(`logoutClient/ locationId: ${location_identifier}, user_id: ${user_id}`);
         return res.status(400).json({success: false, message: `The location identifier and user_id are required. location_identifier: ${location_identifier}, user_id: ${user_id}`});
     }
 
     try {
         const client = getClient(location_identifier);
         if (!client) {
+            console.log(`logoutClient/ There is no client with this locationId: ${location_identifier}`)
             return res.status(400).json({success: false, message: `There is no client with this location_identifier: ${location_identifier}`});
         }
         else {
-            
+            console.log(`logoutClient/ Logging out client`, client.info)
             await client.logout();
             const client_number = client.info.wid.user;
             const client_platform = client.info.platform;
@@ -29,12 +28,12 @@ async function logoutClient(location_identifier, user_id, res) {
                 client_platform: client_platform,
                 client_pushname: client_pushname
             }).catch(error => {
-                console.error('Error sending ready event to rails app:', error);
+                console.error('logoutClient/ Error sending ready event to rails app:', error);
             });
             res.status(200).json({code: 200, status: 'success', body: `The session for ${location_identifier} was closed successfully. Asked by user_id: ${user_id}`});
         }
     } catch (error) {
-        console.error('Error in logout process:', error);
+        console.error('logoutClient/catch/ Error in logout process:', error);
         res.status(500).json({success: false, message: `'Error during logout process. Error: ${error}`});
     }
 }

@@ -21,6 +21,7 @@ class LegacySessionAuth extends BaseAuthStrategy {
     }
 
     async afterBrowserInitialized() {
+        console.log('afterBrowserInitialized::')
         if(this.session) {
             await this.client.pupPage.evaluateOnNewDocument(session => {
                 if (document.referrer === 'https://whatsapp.com/') {
@@ -37,6 +38,7 @@ class LegacySessionAuth extends BaseAuthStrategy {
     }
 
     async onAuthenticationNeeded() {
+        console.log('onAuthenticationNeeded::')
         if(this.session) {
             this.session = null;
             return {
@@ -50,6 +52,7 @@ class LegacySessionAuth extends BaseAuthStrategy {
     }
 
     async getAuthEventPayload() {
+        console.log('getAuthEventPayload::')
         const isMD = await this.client.pupPage.evaluate(() => {
             return window.Store.MDBackend;
         });

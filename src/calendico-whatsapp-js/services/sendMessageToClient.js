@@ -18,22 +18,19 @@ async function send_message_to_client(
         const client = getClient(location_identifier);
         if (!client || getClientInitializing(location_identifier)) {
             if (getClientInitializing(location_identifier)) {
-                console.log("============================================");
-                console.log("Client is already initializing... (getClientInitializing OK)");
-                console.log("============================================");
+                console.log("send_message_to_client/ Client is already initializing... (getClientInitializing OK)");
                 return res.status(400).json({
                     success: false,
                     message:
                         "Client is already initializing. Please try again in a few seconds.",
                 });
             } else {
-                console.log("============================================");
-                console.log("Client not initialized yet. Initializing...");
-                console.log("============================================");
+                console.log("send_message_to_client/ Client not initialized yet. Initializing...");
                 await initializeWhatsAppClient(
                     location_identifier,
                     "automatic_reconnect"
-                );
+                    );
+                console.log("send_message_to_client/automatic_reconnect/ Client not initialized yet. Please try again after re connecting the session. We'll try to reconnect the session automatically");
                 return res.status(400).json({
                     success: false,
                     message:
@@ -41,8 +38,9 @@ async function send_message_to_client(
                 });
             }
         }
+
         const client_state = await client.getState().catch(async (error) => {
-            console.error("Error getting client state:", error);
+            console.error("send_message_to_client/client_state/Error getting client state:", error);
             addClientInitializing(location_identifier, client);
             await initializeWhatsAppClient(location_identifier);
             return res
@@ -52,9 +50,7 @@ async function send_message_to_client(
                     message: "Error getting client state",
                 });
         });
-        console.log("============================================");
-        console.log("client.getState():", client_state);
-        console.log("============================================");
+        console.log("send_message_to_client/client.getState():", client_state);
         if (
             client_state === null ||
             client_state === "CONFLICT" ||
@@ -67,10 +63,8 @@ async function send_message_to_client(
                 message:
                     "Client session expired. Please try again in a few seconds.",
             });
-        } else {
-            console.log("============================================");
-            console.log("Sending message...");
-            console.log("============================================");
+        } else { 
+            console.log("send_message_to_client/Sending message..."); 
             try {
                 const messageObject = await client.sendMessage(
                     `${receiver_phone}@c.us`,

@@ -11,6 +11,7 @@ const maxQrCodeDeliveriesReached = (location_identifier) => {
     return qrCodeDeliveries[location_identifier] >= MAX_QR_CODE_DELIVERIES;
 }
 const addQrCodeDelivery = (location_identifier) => {
+    if (process.env.DEBUG_MODE === 'verbose') console.log(`addQrCodeDelivery/Adding qrCode delivery for location identifier: ${location_identifier}`)
     qrCodeDeliveries[location_identifier] = 1;
 };
 
@@ -19,9 +20,9 @@ const getQrCodeDelivery = (location_identifier) => qrCodeDeliveries[location_ide
 const resetQrCodeDelivery = (location_identifier) => {
     if (qrCodeDeliveries[location_identifier]) {
         delete qrCodeDeliveries[location_identifier];
-        console.log(`Resetting qrCode deliveries for location identifier: ${location_identifier}`);
+        console.log(`resetQrCodeDelivery.Resetting qrCode deliveries for location identifier: ${location_identifier}`);
     } else {
-        console.log(`No qrCode deliveries found for location identifier: ${location_identifier}`);
+        console.log(`resetQrCodeDelivery.No qrCode deliveries found for location identifier: ${location_identifier}`);
     }
 };
 
