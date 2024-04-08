@@ -13,7 +13,7 @@ const getClient = (location_identifier) => {
     console.log(`getClient/client keys: ${Object.keys(clients)}`);
     console.log(`getClient/client id:`, typeof clients[location_identifier]);
     if (typeof clients[location_identifier] !== undefined) {
-        console.log(`getClient/logging clientid arr`, clients[location_identifier]);
+        console.log(`getClient/logging clientid arr is not undefined.`);
     }
     return clients[location_identifier];
 };
