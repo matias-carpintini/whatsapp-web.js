@@ -10,7 +10,7 @@ function loginClient(location_identifier, user_id, res) {
 
     try {
         const client = getClient(location_identifier);
-        console.log(`loginClient/getClient/client`, $client);
+        console.log(`loginClient/getClient/client`, client);
         if (client === undefined) {
             console.log('loginClient/ Client not found in inner store. Initializing client...');
             initializeWhatsAppClient(location_identifier, user_id); // Initializes client and handles QR code
