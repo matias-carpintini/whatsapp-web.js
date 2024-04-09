@@ -38,7 +38,7 @@ async function send_message_to_client(
                 });
             }
         }
-
+        // client session is running
         const client_state = await client.getState().catch(async (error) => {
             console.error("send_message_to_client/client_state/Error getting client state:", error);
             addClientInitializing(location_identifier, client);
