@@ -78,14 +78,12 @@ const setupClientEventListeners = (client, location_identifier, user_id) => {
         }
     });
 
-    
     client.on('remote_session_saved', () => {
         console.log('/setup/client.on.remote_session_saved for session:', location_identifier);
     });
 
     client.on('authenticated', () => {
         // Save the new session data to the database
-        console.info('/setup/client.on.authenticated/Starting to save session for location:', location_identifier);
         console.info('/setup/client.on.authenticated/This can take up to a minute depending on the size of the session data, so please wait.');
     });
 

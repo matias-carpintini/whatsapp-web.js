@@ -5,6 +5,9 @@ function showClients() {
     const p = getClients();
     return Object.keys(p)
 }
+function syncExistingClients() {
+    console.log('[sync] existing clients...')
+}
 function loginClient(location_identifier, user_id, res) {
     console.log(`loginClient/ Starting login process for ${location_identifier} by user_id: ${user_id}`);
     if (!location_identifier) {
@@ -37,4 +40,4 @@ function loginClient(location_identifier, user_id, res) {
     }
 }
 
-module.exports = { loginClient, showClients };
+module.exports = { loginClient, showClients, syncExistingClients };

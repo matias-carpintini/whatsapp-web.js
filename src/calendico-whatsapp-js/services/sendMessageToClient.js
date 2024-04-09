@@ -18,19 +18,18 @@ async function send_message_to_client(
         const client = getClient(location_identifier);
         if (!client || getClientInitializing(location_identifier)) {
             if (getClientInitializing(location_identifier)) {
-                console.log("send_message_to_client/ Client is already initializing... (getClientInitializing OK)");
+                console.log(`Client [${location_identifier}] has a session connecting...`);
                 return res.status(400).json({
                     success: false,
                     message:
                         "Client is already initializing. Please try again in a few seconds.",
                 });
             } else {
-                console.log("send_message_to_client/ Client not initialized yet. Initializing...");
+                console.log(`Client [${location_identifier}] has no session, initializing...`);
                 await initializeWhatsAppClient(
                     location_identifier,
                     "automatic_reconnect"
                     );
-                console.log("send_message_to_client/automatic_reconnect/ Client not initialized yet. Please try again after re connecting the session. We'll try to reconnect the session automatically");
                 return res.status(400).json({
                     success: false,
                     message:
@@ -50,7 +49,7 @@ async function send_message_to_client(
                     message: "Error getting client state",
                 });
         });
-        console.log("send_message_to_client/client.getState():", client_state);
+        console.log("send_message_to_client/client.getState(): ", client_state);
         if (
             client_state === null ||
             client_state === "CONFLICT" ||
@@ -64,7 +63,7 @@ async function send_message_to_client(
                     "Client session expired. Please try again in a few seconds.",
             });
         } else { 
-            console.log(`send_message_to_client/Sending message [${message.substr(0, 30)}...] to ${receiver_phone} location: [${location_identifier}]`); 
+            console.log(`sending message [${message_id}] => [${location_identifier}] => ${receiver_phone} => [${message.substr(0, 30)}...]`); 
             try {
                 const messageObject = await client.sendMessage(
                     `${receiver_phone}@c.us`,
@@ -89,6 +88,7 @@ async function send_message_to_client(
                     message_status: messageObject.ack,
                     message_archived: true,
                 });
+                console.log(`message successfully sent to ${receiver_phone} [${message_id}]`)
             } catch (error) {
                 throw new Error(error);
             }
