@@ -5,6 +5,7 @@ const clientsInitializing = {};
 const getClientsInitializing = () => clientsInitializing;
 
 const addClientInitializing = (location_identifier, clientInstance) => {
+    console.log(`Adding client initializing for location identifier: ${location_identifier}`)
     clientsInitializing[location_identifier] = clientInstance;
 };
 
@@ -13,9 +14,9 @@ const getClientInitializing = (location_identifier) => clientsInitializing[locat
 const removeClientInitializing = (location_identifier) => {
     if (clientsInitializing[location_identifier]) {
         delete clientsInitializing[location_identifier];
-        console.log(`Initializing client removed for location identifier: ${location_identifier}`);
+        console.log(`removeClientInitializing/Initializing client removed for location identifier: ${location_identifier}`);
     } else {
-        console.log(`No client found for location identifier: ${location_identifier}`);
+        console.log(`removeClientInitializing/No client found for location identifier: ${location_identifier}`);
     }
 };
 

@@ -12,12 +12,11 @@ async function getChats(location_identifier, chats_to_get, res, return_raw_chats
         const client = getClient(location_identifier);
         if (!client) {
             if (getClientInitializing(location_identifier)) {
-                console.log('============================================');
-                console.log('Client is initializing...');
-                console.log('============================================');
+                console.log('getChats/getClient/getClientInitializing...');
                 if (return_raw_chats) {
                     return false
                 } else {
+                    console.log('[code:400] Client is already initializing...');
                     return res.status(400).json({
                         success: false,
                         message: 'Client is already initializing. Please try again in a few seconds.'
@@ -27,15 +26,15 @@ async function getChats(location_identifier, chats_to_get, res, return_raw_chats
             if (return_raw_chats) {
                 return false
             } else {
+                console.log(`[code:400] There is no client with this location_identifier: ${location_identifier}`);
                 return res.status(400).json({
                     success: false,
                     message: `getChats: There is no client with this location_identifier: ${location_identifier}`
                 });
             }
-        }
-        else {
+        } else {
             const chats = await client.getChats().catch(async (error) => {
-                console.error('Error getting chats:', error);
+                console.error('getChats/client/catch/ Error getting chats:', error);
                 addClientInitializing(location_identifier, client);
                 await initializeWhatsAppClient(location_identifier);
                 if (return_raw_chats) {
@@ -47,10 +46,10 @@ async function getChats(location_identifier, chats_to_get, res, return_raw_chats
             if (return_raw_chats) {
                 return chats;
             }
-            console.log('============================================');
-            console.log(`There are ${chats.length} chats`);
+            console.log(`getChats/client/There are ${chats.length} chats`);
             //raise error if chats is undefined
             if (chats === undefined) {
+                console.log('getChats/ We cannot get the chats at this moment')
                 return res.status(400).json({success: false, message: 'We cannot get the chats at this moment. Please try again later'});
             }
             createChatJSONObject(chats, Number(chats_to_get))
@@ -58,12 +57,12 @@ async function getChats(location_identifier, chats_to_get, res, return_raw_chats
                     return res.status(200).json({code: 200, status: 'success', body: chatJSONObject});
                 })
                 .catch(error => {
-                    console.error('Error creating chat JSON object:', error);
+                    console.error('getChat/Error creating chat JSON object:', error);
                     res.status(500).json({success: false, message: `Error creating chat JSON object: ${error}`});
                 });
         }
     } catch (error) {
-        console.error('Error in getChats process:', error);
+        console.error('getChat/catch/Error in getChats process:', error);
         res.status(500).json({success: false, message: 'Error during getChats process'});
     }
 }
