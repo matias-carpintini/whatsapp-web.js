@@ -10,10 +10,8 @@ const addClient = (location_identifier, clientInstance) => {
 
 const getClient = (location_identifier) => {
     console.log('getClient/location_identifier:', location_identifier);
-    console.log(`getClient/client keys: ${Object.keys(clients)}`);
-    console.log(`getClient/client id:`, typeof clients[location_identifier]);
-    if (typeof clients[location_identifier] !== undefined) {
-        console.log(`getClient/logging clientid arr is not undefined.`);
+    if (typeof clients[location_identifier] === undefined) {
+        console.error(`getClient/logging clientid arr is undefined.`);
     }
     return clients[location_identifier];
 };

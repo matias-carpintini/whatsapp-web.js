@@ -5,11 +5,8 @@ console.log('Starting to load required modules...');
 /* Require Optional Dependencies */
 try {
     var fs = require('fs-extra');
-    console.log('remoteAuth/Loaded fs-extra module successfully.');
     var AdmZip = require('adm-zip');
-    console.log('remoteAuth/Loaded AdmZip module successfully.');
     var archiver = require('archiver');
-    console.log('remoteAuth/Loaded archiver module successfully.');
 } catch {
     console.log('remoteAuth/Failed to load one or more optional dependencies. Setting them to undefined.');
     fs = undefined;
@@ -18,13 +15,9 @@ try {
 }
 
 const path = require('path');
-console.log('remoteAuth/Loaded path module successfully.');
 const { Events } = require('./../util/Constants');
-console.log('remoteAuth/Loaded Events from Constants successfully.');
 const BaseAuthStrategy = require('./BaseAuthStrategy');
-console.log('remoteAuth/Loaded BaseAuthStrategy successfully.');
 
-console.log('remoteAuth/Starting RemoteAuth class definition...');
 
 /**
  * Remote-based authentication
@@ -63,7 +56,7 @@ class RemoteAuth extends BaseAuthStrategy {
         this.dataPath = path.resolve(dataPath || './.wwebjs_auth/');
         this.tempDir = `${this.dataPath}/wwebjs_temp_session_${this.clientId}`;
         this.requiredDirs = ['Default', 'IndexedDB', 'Local Storage'];
-        console.log('remoteAuth/RemoteAuth initialized successfully.');
+        //console.log('remoteAuth/RemoteAuth initialized successfully.');
     }
 
     async beforeBrowserInitialized() {
@@ -83,24 +76,23 @@ class RemoteAuth extends BaseAuthStrategy {
         console.log('remoteAuth/this.userDataDir set to:', this.userDataDir);
         console.log('remoteAuth/this.sessionName set to:', this.sessionName);
         await this.extractRemoteSession();
-
         this.client.options.puppeteer = {
             ...puppeteerOpts,
             userDataDir: dirPath
         };
-        console.log('remoteAuth/beforeBrowserInitialized completed.');
+        //console.log('remoteAuth/beforeBrowserInitialized completed.');
     }
 
     async logout() {
         console.log('remoteAuth/Executing logout...');
         await this.disconnect();
-        console.log('remoteAuth/Logout completed.');
+        //console.log('remoteAuth/Logout completed.');
     }
 
     async destroy() {
         console.log('remoteAuth/Executing destroy...');
         clearInterval(this.backupSync);
-        console.log('remoteAuth/Destroy completed.');
+        //console.log('remoteAuth/Destroy completed.');
     }
 
     async disconnect() {
@@ -114,19 +106,21 @@ class RemoteAuth extends BaseAuthStrategy {
         console.log('----------------------------------------------------------------------------------------------');
         if (pathExists) {
             console.log('remoteAuth/disconnect/Attempting to remove userDataDir...');
-            await fs.promises.rm(this.userDataDir, {
-                recursive: true,
-                force: true
-            }).catch((error) => {
+            try {
+                fs.rmSync(this.userDataDir, {
+                    recursive: true,
+                    force: true
+                })
+            } catch (error) {
                 console.error('remoteAuth/disconnect/Error deleting userDataDir:', error);
-            });
+            };
         }
         clearInterval(this.backupSync);
         console.log('remoteAuth/disconnect/Disconnect completed.');
     }
 
     async afterAuthReady() {
-        console.log('remoteAuth/afterAuthReady init...');
+        //console.log('remoteAuth/afterAuthReady init...');
         const sessionExists = await this.store.sessionExists({session: this.sessionName});
         console.log('remoteAuth/afterAuthReady/Session exists check:', sessionExists);
         if(!sessionExists) {
@@ -137,61 +131,79 @@ class RemoteAuth extends BaseAuthStrategy {
         }
         var self = this;
         this.backupSync = setInterval(async function () {
-            console.log('remoteAuth/afterAuthReady/Storing remote session in backupSync interval...');
+            console.log('Storing remote session in backupSync interval...');
             await self.storeRemoteSession();
         }, this.backupSyncIntervalMs);
-        console.log('remoteAuth/afterAuthReady/afterAuthReady completed.');
+        console.log(`Programmed backupSync ${this.backupSyncIntervalMs}ms interval`);
     }
 
     async storeRemoteSession(options) {
-        console.log('remoteAuth/storeRemoteSession/Executing storeRemoteSession...');
+        //console.log('remoteAuth/storeRemoteSession/Executing storeRemoteSession...');
         /* Compress & Store Session */
         const pathExists = await this.isValidPath(this.userDataDir);
         console.log('remoteAuth/afterAuthReady/Path exists check for storeRemoteSession:', pathExists);
         if (pathExists) {
-            console.log('remoteAuth/afterAuthReady/Compressing and storing session...');
-            await this.compressSession();
-            await this.store.save({session: this.sessionName});
-            console.log('remoteAuth/afterAuthReady/Removing compressed session and temp directory...');
-            await fs.promises.unlink(`${this.sessionName}.zip`);
-            await fs.promises.rm(`${this.tempDir}`, {
+            //console.log('remoteAuth/afterAuthReady/Compressing and storing session...');
+            try {
+                await this.compressSession();
+            } catch (e){
+                console.error('compressSession err: ',e)
+            }
+            console.log(`Store.Save session ${this.sessionName}`)
+            
+            try {
+
+                await this.store.save({session: this.sessionName});
+                console.log(`removing ${this.tempDir}... and zipFile locally...`)
+                await fs.promises.unlink(`${this.sessionName}.zip`); 
+
+                fs.rmSync(`${this.tempDir}`, {
                 recursive: true,
                 force: true
-            }).catch(() => {});
-            if(options && options.emit) {
-                console.log('remoteAuth/afterAuthReady/Emitting REMOTE_SESSION_SAVED event...');
-                this.client.emit(Events.REMOTE_SESSION_SAVED);
+                })
+
+                if(options && options.emit) {
+                    console.log('remoteAuth/afterAuthReady/Emitting REMOTE_SESSION_SAVED event...');
+                    this.client.emit(Events.REMOTE_SESSION_SAVED);
+                    await this.deleteMetadata();
+                }
+            } catch (error){
+                console.error('Error saving to Store and deleting files:', error)
             }
         }
-        console.log('storeRemoteSession completed.');
     }
 
     async extractRemoteSession() {
-        console.log('remoteAuth/extractRemoteSession/Executing extractRemoteSession...');
+        console.log('::::trying to find a remote session...');
         const pathExists = await this.isValidPath(this.userDataDir);
         const compressedSessionPath = `${this.sessionName}.zip`;
         const sessionExists = await this.store.sessionExists({session: this.sessionName});
-        console.log('remoteAuth/extractRemoteSession/Path exists check for extractRemoteSession:', pathExists);
-        console.log('remoteAuth/extractRemoteSession/Session exists check for extractRemoteSession:', sessionExists);
-        console.log('remoteAuth/extractRemoteSession/Compressed session path:', compressedSessionPath);
         if (pathExists) {
-            console.log('remoteAuth/extractRemoteSession/Removing existing userDataDir...');
-            await fs.promises.rm(this.userDataDir, {
-                recursive: true,
-                force: true
-            }).catch((error) => {
-                console.error('remoteAuth/extractRemoteSession/Error deleting existing userDataDir:', error);
-            });
+            //console.log('remoteAuth/extractRemoteSession/Removing existing userDataDir...');
+            try { 
+                fs.rmSync(this.userDataDir, {
+                    recursive: true,
+                    force: true
+                })
+            } catch (error){
+                    console.error('remoteAuth/extractRemoteSession/Error deleting existing userDataDir:', error);
+            };
         }
         if (sessionExists) {
             console.log('remoteAuth/extractRemoteSession/Extracting and decompressing session...');
             await this.store.extract({session: this.sessionName, path: compressedSessionPath});
-            await this.unCompressSession(compressedSessionPath);
+            try {
+                await this.unCompressSession(compressedSessionPath);
+            } catch (e){
+                console.error(e);
+                await fs.promises.unlink(compressedSessionPath);
+                fs.mkdirSync(this.userDataDir, { recursive: true });
+            }
         } else {
-            console.log('remoteAuth/extractRemoteSession/Session does not exist. Creating userDataDir...');
+            //console.log('remoteAuth/extractRemoteSession/Session does not exist. Creating userDataDir...');
             fs.mkdirSync(this.userDataDir, { recursive: true });
         }
-        console.log('remoteAuth/extractRemoteSession/extractRemoteSession completed.');
+        //console.log('remoteAuth/extractRemoteSession/extractRemoteSession completed.');
     }
 
     async deleteRemoteSession() {
@@ -202,7 +214,7 @@ class RemoteAuth extends BaseAuthStrategy {
             console.log('remoteAuth/deleteRemoteSession/Deleting remote session...');
             await this.store.delete({session: this.sessionName});
         }
-        console.log('remoteAuth/deleteRemoteSession/deleteRemoteSession completed.');
+        //console.log('remoteAuth/deleteRemoteSession/deleteRemoteSession completed.');
     }
 
     async compressSession() {
@@ -210,39 +222,61 @@ class RemoteAuth extends BaseAuthStrategy {
         const archive = archiver('zip');
         const stream = fs.createWriteStream(`${this.sessionName}.zip`);
 
-        console.log('remoteAuth/compressSession/Copying userDataDir to tempDir...');
-        await fs.copy(this.userDataDir, this.tempDir).catch(() => {});
-        console.log('remoteAuth/compressSession/Deleting metadata...');
-        await this.deleteMetadata();
+        console.log(`remoteAuth/compressSession/Copying ${this.userDataDir} to ${this.tempDir}...`);
+        await fs.copy(this.userDataDir, this.tempDir).catch((error) => {
+            console.error('error in copy', error)
+        }); 
         console.log('remoteAuth/compressSession/Archiving session...');
         return new Promise((resolve, reject) => {
-            archive
-                .directory(this.tempDir, false)
-                .on('error', err => reject(err))
-                .pipe(stream);
+            console.log('Starting archiving process');
 
+            stream.on('end', () => {
+                console.log('Data has been drained')
+            })
+            stream.on('error', err => {
+                console.error(err);
+                reject(err)
+            })
+            stream.on('finish', () => {
+                console.log(':::Stream/onFinish:::remoteAuth/compressSession/Session compressed successfully.');
+            })
             stream.on('close', () => {
-                console.log('remoteAuth/compressSession/Session compressed successfully.');
+                console.log(':::Stream/onClose:::remoteAuth/compressSession/Session compressed successfully.');
                 resolve();
             });
+
+            archive
+                .directory(this.tempDir, false)
+                .pipe(stream)
+                .on('warning', err => {
+                    console.log('WARNING_IN_ARCHIVE', err)
+                })
+                .on('error', err => {
+                    console.log('ERROR_IN_ARCHIVE', err)
+                    reject(err)
+                })
             archive.finalize();
+
+
+            console.log('archiving finalize()');
         });
     }
 
     async unCompressSession(compressedSessionPath) {
-         await new Promise((resolve, reject) => {
-            const zip = new AdmZip(compressedSessionPath, {}); 
-            zip.extractAllToAsync(this.userDataDir, true, false, (err) => {
+        await new Promise((resolve, reject) => {
+            console.log(`Extracting session... ${compressedSessionPath} => ${this.userDataDir}`)
+            const zip = new AdmZip(compressedSessionPath, {});
+            zip.extractAllToAsync(this.userDataDir, false, false, (err) => {
                 if (err) {
-                    console.log('remoteAuth/unCompressSession/Session could not be decompressed. Error!.');
+                    console.error('Session could not be decompressed. Error!.',err); 
                     reject(err);
                 } else {
-                    console.log('remoteAuth/unCompressSession/Session decompressed successfully.');
+                    console.log('Session decompressed successfully.');
                     resolve();
                 }
             });
         });
-        console.log('remoteAuth/unCompressSession/Removing compressed session file...');
+        console.log('Removing compressed session file...');
         await fs.promises.unlink(compressedSessionPath);
     }
 
@@ -258,13 +292,15 @@ class RemoteAuth extends BaseAuthStrategy {
                     const stats = await fs.promises.lstat(dirElement);
 
                     if (stats.isDirectory()) {
-                        console.log('remoteAuth/deleteMetadata/Removing directory:', dirElement);
-                        await fs.promises.rm(dirElement, {
-                            recursive: true,
-                            force: true
-                        }).catch(() => {});
+                        //console.log('remoteAuth/deleteMetadata/Removing directory:', dirElement);
+                        try { 
+                            fs.promises.rm(dirElement, {
+                                recursive: true,
+                                force: true
+                            })
+                        } catch(e){ }
                     } else {
-                        console.log('remoteAuth/deleteMetadata/Removing file:', dirElement);
+                        //console.log('remoteAuth/deleteMetadata/Removing file:', dirElement);
                         await fs.promises.unlink(dirElement).catch(() => {});
                     }
                 }
@@ -276,10 +312,10 @@ class RemoteAuth extends BaseAuthStrategy {
     async isValidPath(path) {
         try {
             await fs.promises.access(path);
-            console.log('isValidpath/Path is valid:', path);
+            //console.log('isValidpath/Path is valid:', path);
             return true;
         } catch {
-            console.log('isValidpath/Path is not valid:', path);
+            //console.log('isValidpath/Path is not valid:', path);
             return false;
         }
     }
@@ -293,8 +329,8 @@ class RemoteAuth extends BaseAuthStrategy {
     }
 }
 
-console.log('remoteAuth/RemoteAuth class defined successfully. Preparing to export...');
+//console.log('remoteAuth/RemoteAuth class defined successfully. Preparing to export...');
 
 module.exports = RemoteAuth;
 
-console.log('remoteAuth/RemoteAuth module exported successfully.');
+//console.log('remoteAuth/RemoteAuth module exported successfully.');

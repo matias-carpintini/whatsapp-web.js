@@ -563,7 +563,7 @@ class Client extends EventEmitter {
              * @param {WAState} state the new connection state
              */
             this.emit(Events.STATE_CHANGED, state);
-
+            console.log('=======State changed:', state);
             const ACCEPTED_STATES = [WAState.CONNECTED, WAState.OPENING, WAState.PAIRING, WAState.TIMEOUT];
 
             if (this.options.takeoverOnConflict) {

@@ -16,20 +16,21 @@ const {
     DeleteObjectCommand
 } = require('@aws-sdk/client-s3');
 
-const s3 = new S3Client({
+const bucketClientOptions = {
     region: process.env.AWS_S3_REGION,
     credentials: {
         accessKeyId: process.env.AWS_S3_ACCESS_KEY_ID,
         secretAccessKey: process.env.AWS_S3_SECRET_ACCES_KEY_ID
     }
-});
+}
+const s3 = new S3Client(bucketClientOptions);
 
 const putObjectCommand = PutObjectCommand;
 const headObjectCommand = HeadObjectCommand;
 const getObjectCommand = GetObjectCommand;
 const deleteObjectCommand = DeleteObjectCommand;
 
-const store = new AwsS3Store({
+const bucketStoreOptions = {
     bucketName: process.env.AWS_S3_BUCKET_NAME,
     remoteDataPath: process.env.AWS_S3_FOLDER_NAME,
     s3Client: s3,
@@ -37,14 +38,13 @@ const store = new AwsS3Store({
     headObjectCommand,
     getObjectCommand,
     deleteObjectCommand
-});
+};
+const store = new AwsS3Store(bucketStoreOptions);
 
 
 const initializeWhatsAppClient = async (location_identifier, user_id) => {
-    console.log('=====================');
-    console.log(`railsAppBaseUrl: ${railsAppBaseUrl()}`);
-    console.log('=====================');
-    console.log(`Initializing WhatsApp client for ${location_identifier} by user ${user_id}...`);
+    console.log(`init/railsAppBaseUrl: ${railsAppBaseUrl()}`);
+    console.log(`init/Initializing WhatsApp client for ${location_identifier} by user ${user_id}...`);
 
     addClientInitializing(location_identifier, true);
     
@@ -155,7 +155,6 @@ const setupClientEventListeners = (client, location_identifier, user_id) => {
 
     // Handle other necessary events like 'message', 'disconnected', etc.
     client.on('message', (message) => {
-        console.log(`/setup/client.on.message for location: ${location_identifier} msg: ${message.body}`)
         processMessage(client, location_identifier, message).catch(error => {
             console.error('/setup/client.on.message/Error in processMessage:', error);
         });
@@ -199,6 +198,9 @@ const setupClientEventListeners = (client, location_identifier, user_id) => {
         process.exit(0);
     });
 
+    client.on('change_state', (state) => {
+        console.log('STATE_CHANGE', state)
+    })
     client.on('loading_screen', (percent, message) => {
         console.log('client.on.loading_screen/LOADING SCREEN: ', percent, message);
     });
@@ -214,20 +216,17 @@ const incrementQrCodeDelivery = (location_identifier) => {
 }
 
 async function processMessage(client, location_identifier, message) {
-    console.log('processMessage/These are all the properties of the message object:');
+    //console.log('processMessage/These are all the properties of the message object:');
     //printTree(message);
     const client_phone_number = extractNumber(message.from);
     const message_body = message.body;
-    console.log('Message body: ', message_body);
-    console.log('Message from: ', client_phone_number);
-    console.log('Message author: ', message.author);
-    console.log('Message type: ', message.type);
-    console.log('Message deviceType: ', message.deviceType);
-    console.log('Message fromMe: ', message.fromMe);
+    if (client_phone_number != 'status'){
+        console.log(`CLIENT[${client_phone_number}] BODY[${message_body}] AUTHOR[${message.author}] DEVICETYPE[${message.deviceType}] FROM_ME?[${message.fromMe}]`);
+    }
     try {
         const chat = await message.getChat();
         const groupChat = await chat.isGroup;
-        console.log('processMessage/Message is group: ', groupChat);
+        //console.log('processMessage/Message is group: ', groupChat);
         if (!groupChat) {
             forwardMessageToRails(client_phone_number, location_identifier, message_body);
         }
@@ -237,7 +236,7 @@ async function processMessage(client, location_identifier, message) {
 }
 
 function forwardMessageToRails(client_phone_number, location_identifier, message_body) {
-    console.log('forwardMessageToRails/[forwardMessageToRails] Forwarding message to rails app...');
+    //console.log('forwardMessageToRails/[forwardMessageToRails] Forwarding message to rails app...');
     axios.post(`${railsAppBaseUrl()}/incoming_messages`, {
         client_phone_number: client_phone_number,
         location_identifier: location_identifier,
@@ -248,7 +247,7 @@ function forwardMessageToRails(client_phone_number, location_identifier, message
 }
 
 function notifyMessageStatus(payload) {
-    console.log('notifyMessageStatus/Forwarding message to rails app...');
+    //console.log('notifyMessageStatus/Forwarding message to rails app...');
     axios.post(`${railsAppBaseUrl()}/message_status`, payload).catch(error => { 
         console.error('notifyMessageStatus/Error forwarding message to rails app:', error);
     });

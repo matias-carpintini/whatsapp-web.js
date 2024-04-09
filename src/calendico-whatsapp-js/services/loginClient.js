@@ -1,6 +1,10 @@
 const { initializeWhatsAppClient} = require('./whatsappService');
-const { getClient, removeClient } = require('./../clients/ClientsConnected');
+const { getClient, removeClient, getClients } = require('./../clients/ClientsConnected');
 
+function showClients() {
+    const p = getClients();
+    return Object.keys(p)
+}
 function loginClient(location_identifier, user_id, res) {
     console.log(`loginClient/ Starting login process for ${location_identifier} by user_id: ${user_id}`);
     if (!location_identifier) {
@@ -10,7 +14,7 @@ function loginClient(location_identifier, user_id, res) {
 
     try {
         const client = getClient(location_identifier);
-        console.log(`loginClient/getClient/client`, client);
+        console.log(`loginClient/getClient/client: ${location_identifier}`);
         if (client === undefined) {
             console.log('loginClient/ Client not found in inner store. Initializing client...');
             initializeWhatsAppClient(location_identifier, user_id); // Initializes client and handles QR code
@@ -33,4 +37,4 @@ function loginClient(location_identifier, user_id, res) {
     }
 }
 
-module.exports = { loginClient };
+module.exports = { loginClient, showClients };
