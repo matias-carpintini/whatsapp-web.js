@@ -16,10 +16,6 @@ router.post('/send_message', async (req, res) => {
 router.get('/show_clients', (req, res) => {
     return res.send(showClients());
 })
-router.get('/test', (req, res) => {
-    console.log('testing with key: '+req.query['key'])
-    return loginClient('test_'+req.query['key'], 'test_'+req.query['key'], res);
-});
 router.post('/login', (req, res) => {
     const { location_identifier,  user_id } = req.body;
     console.log(`[route/login] locationId ${location_identifier}, user_id: ${user_id}`);
