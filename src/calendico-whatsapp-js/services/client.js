@@ -14,7 +14,7 @@ async function store(location_id, user_id){
 }
 async function remove(location_id) {
     const doc = { location_id };
-    await ClientModel.delete(doc);
+    await ClientModel.deleteMany(doc);
 }
 
 module.exports = { showClients, store, remove }
