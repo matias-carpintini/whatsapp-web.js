@@ -178,7 +178,8 @@ async function processMessage(client, location_identifier, message) {
     const client_phone_number = extractNumber(message.from);
     const message_body = message.body;
     if (client_phone_number != 'status'){
-        console.log(`CLIENT[${client_phone_number}] BODY[${message_body}] AUTHOR[${message.author}] DEVICETYPE[${message.deviceType}] FROM_ME?[${message.fromMe}]`);
+        // received message.
+        // console.log(`CLIENT[${client_phone_number}] BODY[${message_body}] AUTHOR[${message.author}] DEVICETYPE[${message.deviceType}] FROM_ME?[${message.fromMe}]`);
     }
     try {
         const chat = await message.getChat();

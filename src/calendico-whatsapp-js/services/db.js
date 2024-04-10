@@ -23,6 +23,10 @@ restartDB = function() {
             console.error('Error dropping database:', err);
         });
 }  
+showClientsDB = async function() {
+    const items = await ClientModel.find();
+    return items;
+}
 removeTestClient = async function() {
     console.log('removing test client...')
     const c = await ClientModel.delete({ location_id: 'test'});
@@ -34,4 +38,4 @@ createTestClient = async function() {
     return c;
 }  
 
-module.exports = { closeDB, restartDB, removeTestClient, ClientModel } 
+module.exports = { closeDB, restartDB, removeTestClient, showClientsDB, ClientModel } 

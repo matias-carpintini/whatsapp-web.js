@@ -115,3 +115,11 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
+
+## Fork addings
+
+### Mongo DB Installation
+- wget mongodb-org-server-7.0.8-1.amzn2023.x86_64.rpm
+- yum install mongodb-org-server-7.0.8-1.amzn2023.x86_64.rpm
+- sudo systemctl start mongod
+- sudo tail /var/log/mongodb/mongod.log to see logs

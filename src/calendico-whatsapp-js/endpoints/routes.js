@@ -5,7 +5,7 @@ const { loginClient } = require('../services/loginClient');
 const { logoutClient } = require('../services/logoutClient');
 const { getChats } = require('../services/getChats');
 const { getContacts } = require('../services/getContacts');
-const { restartDB, removeTestClient} = require('../services/db');
+const { restartDB, removeTestClient, showClientsDB } = require('../services/db');
 
 // Endpoint to send a message
 router.post('/send_message', async (req, res) => {
@@ -34,8 +34,9 @@ router.get('/db_remove_test', async (req, res) => {
         res.status(500).send('Error execution. Check the log reports.')
     }
 })
-router.get('/show_clients', (req, res) => {
-    return res.send(showClients());
+router.get('/show_clients', async (req, res) => {
+    const items = await showClientsDB();
+    return res.send(items);
 })
 router.post('/login', (req, res) => {
     const { location_identifier,  user_id } = req.body;
