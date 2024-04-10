@@ -18,7 +18,6 @@ class db {
             .then(() => {
                 console.log('Database dropped successfully');
                 this.createTestClient();
-                // mongoose.disconnect();
             })
             .catch((err) => {
                 console.error('Error dropping database:', err);

@@ -1,6 +1,4 @@
-const mongoose = require('mongoose');
 const { ClientModel } = require('./db');
-
 function showClients(status = 'active') {
     const items = ClientModel.find().then((items) => {
 
@@ -8,13 +6,14 @@ function showClients(status = 'active') {
     })
     return items;
 }
-
-function syncExistingClients() {
-    console.log('[sync] connecting client database...')
-    mongoose.connect(process.env.DB_URL || 'mongodb://127.0.0.1/whatsapp_js')
-        .then(() => {
-            console.log('[database connected]...');
-        }) 
+async function store(location_id, user_id){
+    const doc = { location_id, user_id };
+    const item = await ClientModel.findOne(doc);
+    return item || ClientModel.create(doc);
+}
+async function remove(location_id) {
+    const doc = { location_id };
+    await ClientModel.delete(doc);
 }
 
-module.exports = { syncExistingClients, showClients }
+module.exports = { showClients, store, remove }

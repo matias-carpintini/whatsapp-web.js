@@ -24,22 +24,26 @@ class LocalAuth extends BaseAuthStrategy {
     }
 
     async beforeBrowserInitialized() {
-        const puppeteerOpts = this.client.options.puppeteer;
-        const sessionDirName = this.clientId ? `session-${this.clientId}` : 'session';
-        const dirPath = path.join(this.dataPath, sessionDirName);
-        console.log('beforeBrowserInitialized/LocalAuth/dirPath:', dirPath);
-        if(puppeteerOpts.userDataDir && puppeteerOpts.userDataDir !== dirPath) {
-            throw new Error('beforeBrowserInitialized/LocalAuth is not compatible with a user-supplied userDataDir.');
+        try {
+            const puppeteerOpts = this.client.options.puppeteer;
+            const sessionDirName = this.clientId ? `session-${this.clientId}` : 'session';
+            const dirPath = path.join(this.dataPath, sessionDirName);
+            console.log('beforeBrowserInitialized/LocalAuth/dirPath:', dirPath);
+            if(puppeteerOpts.userDataDir && puppeteerOpts.userDataDir !== dirPath) {
+                throw new Error('beforeBrowserInitialized/LocalAuth is not compatible with a user-supplied userDataDir.');
+            }
+
+            fs.mkdirSync(dirPath, { recursive: true });
+            
+            this.client.options.puppeteer = {
+                ...puppeteerOpts,
+                userDataDir: dirPath
+            };
+
+            this.userDataDir = dirPath;
+        } catch (err) {
+            console.error('beforeBrowserInitialized/LocalAuth:', err);
         }
-
-        fs.mkdirSync(dirPath, { recursive: true });
-        
-        this.client.options.puppeteer = {
-            ...puppeteerOpts,
-            userDataDir: dirPath
-        };
-
-        this.userDataDir = dirPath;
     }
 
     async logout() {

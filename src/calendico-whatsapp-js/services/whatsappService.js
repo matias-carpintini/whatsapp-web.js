@@ -1,16 +1,15 @@
-const { Client, RemoteAuth, LocalAuth } = require('./../../../index.js');
-const { addClientInitializing, getClientsInitializing, removeClientInitializing } = require('../clients/ClientsInitializingSession');
+const { Client, LocalAuth } = require('./../../../index.js');
+const { addClientInitializing, removeClientInitializing } = require('../clients/ClientsInitializingSession');
 const { railsAppBaseUrl } = require('./../config/railsAppConfig');
-const { getQrCodeDeliveries, addQrCodeDelivery, resetQrCodeDelivery, getQrCodeDelivery, incrementQrCodeDeliveryFor, maxQrCodeDeliveriesReached } = require('../clients/qrCodeDeliveries');
+const { addQrCodeDelivery, resetQrCodeDelivery, getQrCodeDelivery, incrementQrCodeDeliveryFor, maxQrCodeDeliveriesReached } = require('../clients/qrCodeDeliveries');
 
 const qrcodeTerminal = require('qrcode-terminal');
-const { addClient, removeClient } = require('./../clients/ClientsConnected');
+const { addClient, removeClient, storeDataClient } = require('./../clients/ClientsConnected');
 const { extractNumber } = require('../utils/utilities');
 const axios = require('axios');
 
 const initializeWhatsAppClient = async (location_identifier, user_id) => {
-    console.log(`initWAClient/railsURL: ${railsAppBaseUrl()} / ${location_identifier} by user ${user_id}...`);
-
+    console.log(`Initializing client... ${railsAppBaseUrl()} / ${location_identifier} by user ${user_id}...`);
     addClientInitializing(location_identifier, true);
     
     try {
@@ -23,7 +22,7 @@ const initializeWhatsAppClient = async (location_identifier, user_id) => {
             ]
         };
         if (process.env.CHROMIUM_EXECUTABLE_PATH) {
-            console.log('Using Chromium from', process.env.CHROMIUM_EXECUTABLE_PATH)
+            //console.log('Using Chromium from', process.env.CHROMIUM_EXECUTABLE_PATH)
             puppeteerOptions.executablePath = process.env.CHROMIUM_EXECUTABLE_PATH;
         }
         
@@ -43,6 +42,7 @@ const initializeWhatsAppClient = async (location_identifier, user_id) => {
 
         // Store the client instance in the clients object
         addClient(location_identifier, client);
+        storeDataClient(location_identifier, user_id);
 
     } catch (error) {
         console.error(`Failed to initialize WhatsApp client for ${location_identifier}:`, error);
@@ -59,6 +59,7 @@ const setupClientEventListeners = (client, location_identifier, user_id) => {
             await notifyMaxQrCodesReached(location_identifier);
             client.destroy();
             removeClient(location_identifier);
+            remoteDataClient(location_identifier);
             return;
         }
         // Send QR code to Rails app instead of logging it
@@ -66,7 +67,6 @@ const setupClientEventListeners = (client, location_identifier, user_id) => {
         console.log(`/setup/client.on.qr/location_identifier: ${location_identifier}, user_id: ${user_id}`);
         try {
             qrcodeTerminal.generate(qr, { small: true });
-            console.log('sending qr code to rails app');
             const qrcodeUrl = process.env.RAILS_APP_URL || 'http://localhost:3000';
             await axios.post(`${qrcodeUrl}/whatsapp_web/qr_code`, {
                 code: qr,
@@ -74,7 +74,7 @@ const setupClientEventListeners = (client, location_identifier, user_id) => {
                 user_id: user_id
             });
         } catch (error) {
-            console.error(`Failed to send QR code for ${location_identifier}:`, error);
+            console.error(`Failed to send QR code for ${location_identifier}. CODE: ${error.code}`);
         }
     });
 
@@ -215,7 +215,7 @@ async function notifyMaxQrCodesReached(location_identifier) {
         event_type: 'max_qr_codes_reached',
         location_identifier: location_identifier,
     }).catch(error => {
-        console.error('notifyMaxQrCodesReached/Error sending ready event to rails app:', error);
+        console.error('notifyMaxQrCodesReached/Error in rails::new_login CODE:', error.code);
     });
 }
 

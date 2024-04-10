@@ -1,3 +1,4 @@
+const { store, remove } = require('../services/client');
 // Shared clients object
 const clients = {};
 
@@ -5,9 +6,15 @@ const clients = {};
 const getClients = () => clients;
 
 const addClient = (location_identifier, clientInstance) => {
-    clients[location_identifier] = clientInstance;
+    clients[location_identifier] = clientInstance; 
 };
 
+const storeDataClient = async (location_identifier, user_id) => {
+    await store(location_identifier, user_id);
+};
+const removeDataClient = async (location_identifier, _user_id) => {
+    await remove(location_identifier);
+};
 const getClient = (location_identifier) => {
     if (typeof clients[location_identifier] === undefined) {
         console.error(`getClient/logging clientid arr is undefined.`);
@@ -24,4 +31,4 @@ const removeClient = (location_identifier) => {
     }
 };
 
-module.exports = { getClients, addClient, removeClient, getClient };
+module.exports = { getClients, addClient, removeClient, getClient, storeDataClient, removeDataClient };
