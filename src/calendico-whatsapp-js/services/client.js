@@ -1,8 +1,12 @@
 const mongoose = require('mongoose');
+const { ClientModel } = require('./db');
 
 function showClients(status = 'active') {
-    console.log(`showing ${status} clients...`)
-    return []
+    const items = ClientModel.find().then((items) => {
+
+        console.log(items.map((i) => i.location_id))
+    })
+    return items;
 }
 
 function syncExistingClients() {

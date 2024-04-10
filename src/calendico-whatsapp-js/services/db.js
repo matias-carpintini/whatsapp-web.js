@@ -1,15 +1,14 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
+const ClientSchema = new Schema({
+    location_id: { type: String, index: true },
+    user_id: { type: String },
+    date: { type: Date, default: Date.now },
+  });
+const ClientModel = mongoose.model('Client', ClientSchema);
+
 class db {
-    constructor(){
-        const ClientSchema = new Schema({
-            location_id: { type: String, index: true },
-            user_id: { type: String },
-            date: { type: Date, default: Date.now },
-          });
-          const ClientModel = mongoose.model('Client', ClientSchema);
-    };
     close = async function() {
         return mongoose.disconnect()
     }
@@ -27,8 +26,8 @@ class db {
     }  
     createTestClient = async function() {
         console.log('creating client...')
-        const c = await this.ClientModel({ location_id: 'test', user_id: 'test' });
+        const c = await ClientModel.create({ location_id: 'test', user_id: 'test' });
         return c;
     }  
 }
-module.exports = db
+module.exports = { db, ClientModel } 

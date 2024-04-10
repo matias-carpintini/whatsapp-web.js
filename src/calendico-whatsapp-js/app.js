@@ -3,7 +3,7 @@ require('dotenv').config({ path: '../../.env' });
 const express = require('express');
 const bodyParser = require('body-parser');
 const routes = require('./endpoints/routes'); // Import the routes
-const db = require('./services/db')
+const { db } = require('./services/db')
 const { showClients, syncExistingClients } = require('./services/client')
 const database = new db();
 const app = express(); 
@@ -25,10 +25,7 @@ app.use('/', routes);
 syncExistingClients();
 
 setInterval(() => {
-    const c = showClients('active')
-    if (c.length > 0) {
-        console.log(`[Active clients] ${c.length} => ${c}`)
-    }
+    showClients('active')
 }, 30000)
 
 const PORT = process.env.PORT || 8093;
