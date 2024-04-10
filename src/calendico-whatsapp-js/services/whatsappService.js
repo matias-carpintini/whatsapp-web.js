@@ -29,7 +29,7 @@ const initializeWhatsAppClient = async (location_identifier, user_id) => {
         const client = new Client({
             authStrategy: new LocalAuth({
                 clientId: location_identifier,
-                dataPath: './.wwebjs_auth'
+                dataPath: process.env.AUTH_PATH || './.wwebjs_auth'
             }),
             puppeteer: puppeteerOptions,
         });
