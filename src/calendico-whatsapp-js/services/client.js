@@ -2,8 +2,8 @@ const { ClientModel } = require('./db');
 
 function showClients(status = 'active') {
     const items = ClientModel.find().then((items) => {
-
-        console.log(items.map((i) => i.location_id))
+        if (items.length)
+            console.log(items.map((i) => `Location [${i.location_id}] is connected`))
     })
     return items;
 }

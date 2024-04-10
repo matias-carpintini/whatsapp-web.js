@@ -39,16 +39,17 @@ app.use(bodyParser.json());
 app.use('/', routes);
 
 syncExistingClients();
-
+const intervalShow = process.env.INTERVAL_SHOW || 60000;
+console.log(`Setting interval to show clients: ${intervalShow} ms`)
 setInterval(() => {
     showClients('active')
-}, 30000)
+}, intervalShow)
 
 const PORT = process.env.PORT || 8093;
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
-process.setMaxListeners(3);
+process.setMaxListeners(20);
 process.on('SIGINT', () => terminate('SIGINT'));
 process.on('SIGTERM', () => terminate('SIGTERM'));
 
