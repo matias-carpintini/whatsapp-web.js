@@ -8,25 +8,30 @@ const ClientSchema = new Schema({
   });
 const ClientModel = mongoose.model('Client', ClientSchema);
 
-class db {
-    close = async function() {
-        return mongoose.disconnect()
-    }
-    restart = function() {
-        console.log('running restart...')
-        mongoose.connection.dropDatabase()
-            .then(() => {
-                console.log('Database dropped successfully');
-                this.createTestClient();
-            })
-            .catch((err) => {
-                console.error('Error dropping database:', err);
-            });
-    }  
-    createTestClient = async function() {
-        console.log('creating client...')
-        const c = await ClientModel.create({ location_id: 'test', user_id: 'test' });
-        return c;
-    }  
+
+closeDB = async function() {
+    return mongoose.disconnect()
 }
-module.exports = { db, ClientModel } 
+restartDB = function() {
+    console.log('running restart...')
+    mongoose.connection.dropDatabase()
+        .then(() => {
+            console.log('Database dropped successfully');
+            //this.createTestClient();
+        })
+        .catch((err) => {
+            console.error('Error dropping database:', err);
+        });
+}  
+removeTestClient = async function() {
+    console.log('removing test client...')
+    const c = await ClientModel.delete({ location_id: 'test'});
+    return c;
+}  
+createTestClient = async function() {
+    console.log('creating test client...')
+    const c = await ClientModel.create({ location_id: 'test', user_id: 'test' });
+    return c;
+}  
+
+module.exports = { closeDB, restartDB, removeTestClient, ClientModel } 

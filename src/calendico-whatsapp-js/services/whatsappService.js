@@ -4,7 +4,7 @@ const { railsAppBaseUrl } = require('./../config/railsAppConfig');
 const { addQrCodeDelivery, resetQrCodeDelivery, getQrCodeDelivery, incrementQrCodeDeliveryFor, maxQrCodeDeliveriesReached } = require('../clients/qrCodeDeliveries');
 
 const qrcodeTerminal = require('qrcode-terminal');
-const { addClient, removeClient, storeDataClient } = require('./../clients/ClientsConnected');
+const { addClient, removeClient, removeDataClient, storeDataClient } = require('./../clients/ClientsConnected');
 const { extractNumber } = require('../utils/utilities');
 const axios = require('axios');
 
@@ -59,7 +59,7 @@ const setupClientEventListeners = (client, location_identifier, user_id) => {
             await notifyMaxQrCodesReached(location_identifier);
             client.destroy();
             removeClient(location_identifier);
-            remoteDataClient(location_identifier);
+            removeDataClient(location_identifier);
             return;
         }
         // Send QR code to Rails app instead of logging it

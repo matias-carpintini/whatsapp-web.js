@@ -4,18 +4,18 @@ const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const routes = require('./endpoints/routes'); // Import the routes
-const { db, ClientModel } = require('./services/db')
+const { closeDB, ClientModel } = require('./services/db')
 const { showClients } = require('./services/client')
 const { initializeWhatsAppClient } = require('./services/whatsappService')
 
-const database = new db();
 const app = express(); 
 
 
 function syncExistingClients() {
-    const conn = mongoose.connect(process.env.DB_URL || 'mongodb://127.0.0.1/whatsapp_js')
+    const dbUrl = process.env.DB_URL || 'mongodb://127.0.0.1/whatsapp_js';
+    const conn = mongoose.connect(dbUrl)
     conn.then(async () => {
-        console.log('[database connected]...');
+        console.log(`[database connected]... => ${dbUrl}`);
         const items = await ClientModel.find()
         items.map(async (i) => {
             console.log(`[sync] found client: ${i.location_id} / ${i.user_id}`);
@@ -26,8 +26,7 @@ function syncExistingClients() {
 
 function terminate(signal) { 
     console.log(`Received ${signal}. Closing server...`);
-    process.exit(0); return;
-    database.close().then(() => {
+    closeDB().then(() => {
         console.log('Database disconnected. Exiting process...');
         process.exit(0);
     });

@@ -1,4 +1,5 @@
 const { ClientModel } = require('./db');
+
 function showClients(status = 'active') {
     const items = ClientModel.find().then((items) => {
 
