@@ -1,55 +1,17 @@
-const { Client, RemoteAuth } = require('./../../../index.js');
-const { addClientInitializing, getClientsInitializing, removeClientInitializing } = require('../clients/ClientsInitializingSession');
+const { Client, LocalAuth } = require('./../../../index.js');
+const { addClientInitializing, removeClientInitializing } = require('../clients/ClientsInitializingSession');
 const { railsAppBaseUrl } = require('./../config/railsAppConfig');
-const { getQrCodeDeliveries, addQrCodeDelivery, resetQrCodeDelivery, getQrCodeDelivery, incrementQrCodeDeliveryFor, maxQrCodeDeliveriesReached } = require('../clients/qrCodeDeliveries');
+const { addQrCodeDelivery, resetQrCodeDelivery, getQrCodeDelivery, incrementQrCodeDeliveryFor, maxQrCodeDeliveriesReached } = require('../clients/qrCodeDeliveries');
 
 const qrcodeTerminal = require('qrcode-terminal');
-const { addClient, removeClient } = require('./../clients/ClientsConnected');
+const { addClient, removeClient, removeDataClient, storeDataClient } = require('./../clients/ClientsConnected');
 const { extractNumber } = require('../utils/utilities');
 const axios = require('axios');
-const { AwsS3Store } = require('wwebjs-aws-s3');
-const {
-    S3Client,
-    PutObjectCommand,
-    HeadObjectCommand,
-    GetObjectCommand,
-    DeleteObjectCommand
-} = require('@aws-sdk/client-s3');
-
-const bucketClientOptions = {
-    region: process.env.AWS_S3_REGION,
-    credentials: {
-        accessKeyId: process.env.AWS_S3_ACCESS_KEY_ID,
-        secretAccessKey: process.env.AWS_S3_SECRET_ACCES_KEY_ID
-    }
-}
-const s3 = new S3Client(bucketClientOptions);
-
-const putObjectCommand = PutObjectCommand;
-const headObjectCommand = HeadObjectCommand;
-const getObjectCommand = GetObjectCommand;
-const deleteObjectCommand = DeleteObjectCommand;
-
-const bucketStoreOptions = {
-    bucketName: process.env.AWS_S3_BUCKET_NAME,
-    remoteDataPath: process.env.AWS_S3_FOLDER_NAME,
-    s3Client: s3,
-    putObjectCommand,
-    headObjectCommand,
-    getObjectCommand,
-    deleteObjectCommand
-};
-const store = new AwsS3Store(bucketStoreOptions);
-
 
 const initializeWhatsAppClient = async (location_identifier, user_id) => {
-    console.log(`init/railsAppBaseUrl: ${railsAppBaseUrl()}`);
-    console.log(`init/Initializing WhatsApp client for ${location_identifier} by user ${user_id}...`);
-
+    console.log(`Initializing client... ${railsAppBaseUrl()} / ${location_identifier} by user ${user_id}...`);
     addClientInitializing(location_identifier, true);
     
-    console.log(`WAService => clients initializing: ${JSON.stringify(getClientsInitializing(), null, 2)}`);
-
     try {
         const puppeteerOptions = {
             headless: true,
@@ -60,18 +22,15 @@ const initializeWhatsAppClient = async (location_identifier, user_id) => {
             ]
         };
         if (process.env.CHROMIUM_EXECUTABLE_PATH) {
-            console.log('Using Chromium from', process.env.CHROMIUM_EXECUTABLE_PATH)
+            //console.log('Using Chromium from', process.env.CHROMIUM_EXECUTABLE_PATH)
             puppeteerOptions.executablePath = process.env.CHROMIUM_EXECUTABLE_PATH;
         }
         
         const client = new Client({
-            authStrategy: new RemoteAuth({
+            authStrategy: new LocalAuth({
                 clientId: location_identifier,
-                dataPath: './.wwebjs_auth',
-                store: store,
-                backupSyncIntervalMs: 60 * (60 * 1000) // Optional: Sync interval in milliseconds
+                dataPath: './.wwebjs_auth'
             }),
-            //restartOnAuthFail: true, // optional
             puppeteer: puppeteerOptions,
         });
 
@@ -83,6 +42,7 @@ const initializeWhatsAppClient = async (location_identifier, user_id) => {
 
         // Store the client instance in the clients object
         addClient(location_identifier, client);
+        storeDataClient(location_identifier, user_id);
 
     } catch (error) {
         console.error(`Failed to initialize WhatsApp client for ${location_identifier}:`, error);
@@ -99,14 +59,14 @@ const setupClientEventListeners = (client, location_identifier, user_id) => {
             await notifyMaxQrCodesReached(location_identifier);
             client.destroy();
             removeClient(location_identifier);
+            removeDataClient(location_identifier);
             return;
         }
         // Send QR code to Rails app instead of logging it
-        console.log(`/setup/client.on.qr/QR generate code for ${location_identifier}:`, qr);
+        //console.log(`/setup/client.on.qr/QR generated code for ${location_identifier}:`, qr);
         console.log(`/setup/client.on.qr/location_identifier: ${location_identifier}, user_id: ${user_id}`);
         try {
             qrcodeTerminal.generate(qr, { small: true });
-            console.log('sending qr code to rails app');
             const qrcodeUrl = process.env.RAILS_APP_URL || 'http://localhost:3000';
             await axios.post(`${qrcodeUrl}/whatsapp_web/qr_code`, {
                 code: qr,
@@ -114,7 +74,7 @@ const setupClientEventListeners = (client, location_identifier, user_id) => {
                 user_id: user_id
             });
         } catch (error) {
-            console.error(`Failed to send QR code for ${location_identifier}:`, error);
+            console.error(`Failed to send QR code for ${location_identifier}. CODE: ${error.code}`);
         }
     });
 
@@ -122,11 +82,8 @@ const setupClientEventListeners = (client, location_identifier, user_id) => {
         console.log('/setup/client.on.remote_session_saved for session:', location_identifier);
     });
 
-
-
     client.on('authenticated', () => {
         // Save the new session data to the database
-        console.info('/setup/client.on.authenticated/Starting to save session for location:', location_identifier);
         console.info('/setup/client.on.authenticated/This can take up to a minute depending on the size of the session data, so please wait.');
     });
 
@@ -136,7 +93,7 @@ const setupClientEventListeners = (client, location_identifier, user_id) => {
     });
 
     client.on('ready', async () => {
-        console.log(`/setup/client.on.ready/Client ready for ${location_identifier}!`);
+        console.log(`/setup/client.on.ready => ${location_identifier}!`);
         removeClientInitializing(location_identifier);
         const client_number = client.info.wid.user;
         const client_platform = client.info.platform;
@@ -258,7 +215,7 @@ async function notifyMaxQrCodesReached(location_identifier) {
         event_type: 'max_qr_codes_reached',
         location_identifier: location_identifier,
     }).catch(error => {
-        console.error('notifyMaxQrCodesReached/Error sending ready event to rails app:', error);
+        console.error('notifyMaxQrCodesReached/Error in rails::new_login CODE:', error.code);
     });
 }
 

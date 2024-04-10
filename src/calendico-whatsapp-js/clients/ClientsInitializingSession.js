@@ -5,7 +5,6 @@ const clientsInitializing = {};
 const getClientsInitializing = () => clientsInitializing;
 
 const addClientInitializing = (location_identifier, clientInstance) => {
-    console.log(`Adding client initializing for location identifier: ${location_identifier}`)
     clientsInitializing[location_identifier] = clientInstance;
 };
 

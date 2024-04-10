@@ -1,10 +1,6 @@
-const { initializeWhatsAppClient} = require('./whatsappService');
-const { getClient, removeClient, getClients } = require('./../clients/ClientsConnected');
+const { initializeWhatsAppClient } = require('./whatsappService');
+const { getClient, removeClient } = require('./../clients/ClientsConnected');
 
-function showClients() {
-    const p = getClients();
-    return Object.keys(p)
-}
 function loginClient(location_identifier, user_id, res) {
     console.log(`loginClient/ Starting login process for ${location_identifier} by user_id: ${user_id}`);
     if (!location_identifier) {
@@ -14,16 +10,13 @@ function loginClient(location_identifier, user_id, res) {
 
     try {
         const client = getClient(location_identifier);
-        console.log(`loginClient/getClient/client: ${location_identifier}`);
         if (client === undefined) {
             console.log('loginClient/ Client not found in inner store. Initializing client...');
-            initializeWhatsAppClient(location_identifier, user_id); // Initializes client and handles QR code
-        }
-        else {
+            initializeWhatsAppClient(location_identifier, user_id);
+        } else {
             try {
                 client.initialize();
-            }
-            catch (error) {
+            } catch (error) {
                 console.error('loginClient/client.initialize catch/ Error initializing client:', error);
                 removeClient(location_identifier);
                 return res.status(500).json({success: false, message: 'Error initializing client. Please try asking for the QR code again'});
@@ -37,4 +30,4 @@ function loginClient(location_identifier, user_id, res) {
     }
 }
 
-module.exports = { loginClient, showClients };
+module.exports = { loginClient };

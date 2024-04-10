@@ -1,10 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const { send_message_to_client } = require('../services/sendMessageToClient');
-const { loginClient, showClients } = require('../services/loginClient');
+const { loginClient } = require('../services/loginClient');
 const { logoutClient } = require('../services/logoutClient');
 const { getChats } = require('../services/getChats');
 const { getContacts } = require('../services/getContacts');
+const { restartDB, removeTestClient} = require('../services/db');
 
 // Endpoint to send a message
 router.post('/send_message', async (req, res) => {
@@ -12,7 +13,27 @@ router.post('/send_message', async (req, res) => {
     console.log(`[route/send_message] locationId ${location_identifier}`, `receiver_phone: ${receiver_phone}`, `message: ${message.substr(0, 30)}...`); 
     return await send_message_to_client(location_identifier, res, receiver_phone, message, message_id, dont_preview_links, dont_archive_chat);
 });
-
+router.get('/', (req, res) => {
+    res.send('ACK');
+});
+router.get('/db_restart', (req, res) => {
+    try {
+        restartDB();
+        res.send('Restart done')
+    } catch (e) {
+        console.error('db_restart_error: ', e);
+        res.status(500).send('Error execution. Check the log reports.', e)
+    }
+})
+router.get('/db_remove_test', async (req, res) => {
+    try {
+        await removeTestClient();
+        res.send('OK')
+    } catch (e) {
+        console.error('db_remove_test_error: ', e);
+        res.status(500).send('Error execution. Check the log reports.')
+    }
+})
 router.get('/show_clients', (req, res) => {
     return res.send(showClients());
 })
