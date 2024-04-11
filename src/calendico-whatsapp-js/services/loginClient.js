@@ -16,13 +16,13 @@ function loginClient(location_identifier, user_id, res) {
         } else {
             try {
                 client.initialize();
+                console.log(`Initialization started for locationId: ${location_identifier}`);
             } catch (error) {
                 console.error('loginClient/client.initialize catch/ Error initializing client:', error);
                 removeClient(location_identifier);
                 return res.status(500).json({success: false, message: 'Error initializing client. Please try asking for the QR code again'});
             }
         }
-        console.log(`loginClient/ initialization started for locationId: ${location_identifier}`);
         res.status(200).json({code: 200, status: 'success', body: `Initialization process started for ${location_identifier}`});
     } catch (error) {
         console.error('loginClient/catch/ Error in login process:', error);

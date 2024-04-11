@@ -10,6 +10,7 @@ exports.DefaultOptions = {
     webVersion: '2.2346.52',
     webVersionCache: {
         type: 'local',
+        path: process.env.CACHE_PATH || './.wwebjs_cache'
     },
     authTimeoutMs: 0,
     qrMaxRetries: 0,
