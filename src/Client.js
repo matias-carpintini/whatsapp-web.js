@@ -131,14 +131,14 @@ class Client extends EventEmitter {
                 return error;
             };
         });
-        console.log(':::load WhatsAppURL()')
+        console.log(':::loading... WhatsAppURL()')
 
         await page.goto(WhatsWebURL, {
             waitUntil: 'load',
             timeout: 0,
             referer: 'https://whatsapp.com/'
         });
-        console.log(':::load getElementByXpath()')
+        console.log(':::loaded WAURL success()')
         await page.evaluate(`function getElementByXpath(path) {
             return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
           }`);
@@ -204,12 +204,14 @@ class Client extends EventEmitter {
                     .catch((err) => resolve(err));
             })
         ]);
-
+        
         // Checks if an error occurred on the first found selector. The second will be discarded and ignored by .race;
+        console.log(':::checks if an error occurred on the first found selector. The second will be discarded and ignored by .race;')
         if (needAuthentication instanceof Error) throw needAuthentication;
-
+        
         // Scan-qrcode selector was found. Needs authentication
         if (needAuthentication) {
+            console.log(':::Scan-qrcode selector was found. Needs authentication')
             const { failed, failureEventPayload, restart } = await this.authStrategy.onAuthenticationNeeded();
             if(failed) {
                 console.log(':::session restore failed()')
@@ -231,6 +233,7 @@ class Client extends EventEmitter {
             const QR_CONTAINER = 'div[data-ref]';
             const QR_RETRY_BUTTON = 'div[data-ref] > span > button';
             let qrRetries = 0;
+            console.log(':::qrChanged')
             await page.exposeFunction('qrChanged', async (qr) => {
                 /**
                 * Emitted when a QR code is received
@@ -246,6 +249,7 @@ class Client extends EventEmitter {
                     }
                 }
             });
+            console.log(':::eval QR_CONTAINER selector')
 
             await page.evaluate(function (selectors) {
                 const qr_container = document.querySelector(selectors.QR_CONTAINER);
@@ -277,8 +281,12 @@ class Client extends EventEmitter {
 
             // Wait for code scan
             try {
+                console.log(':::eval WAIT FOR SELECTOR')
+
                 await page.waitForSelector(INTRO_IMG_SELECTOR, { timeout: 0 });
+                console.log(':::waitForSelector success()')
             } catch(error) {
+                console.error('SCAN ERROR', error)
                 if (
                     error.name === 'ProtocolError' && 
                     error.message && 
