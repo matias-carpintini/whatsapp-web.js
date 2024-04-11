@@ -336,7 +336,8 @@ class Client extends EventEmitter {
 
         const version = await this.getWWebVersion();
         const isCometOrAbove = parseInt(version.split('.')?.[1]) >= 3000;
-
+        console.log(`:::version`, version)
+        console.log(`:::cacheOpts`, this.options.webVersionCache)
         if (this.options.webVersionCache.type === 'local' && this.currentIndexHtml) {
             const { type: webCacheType, ...webCacheOptions } = this.options.webVersionCache;
             const webCache = WebCacheFactory.createWebCache(webCacheType, webCacheOptions);
