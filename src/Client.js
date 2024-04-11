@@ -138,13 +138,14 @@ class Client extends EventEmitter {
             timeout: 0,
             referer: 'https://whatsapp.com/'
         });
-
+        console.log(':::load getElementByXpath()')
         await page.evaluate(`function getElementByXpath(path) {
             return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
           }`);
 
         let lastPercent = null,
             lastPercentMessage = null;
+        console.log(':::loading Screen exposeFunction()')
 
         await page.exposeFunction('loadingScreen', async (percent, message) => {
             if (lastPercent !== percent || lastPercentMessage !== message) {
@@ -153,6 +154,7 @@ class Client extends EventEmitter {
                 lastPercentMessage = message;
             }
         });
+        console.log(':::check evaluate PROGRESSMSG')
 
         await page.evaluate(
             async function (selectors) {
@@ -187,6 +189,7 @@ class Client extends EventEmitter {
 
         const INTRO_IMG_SELECTOR = '[data-icon=\'search\']';
         const INTRO_QRCODE_SELECTOR = 'div[data-ref] canvas';
+        console.log(':::check need Auth')
 
         // Checks which selector appears first
         const needAuthentication = await Promise.race([
