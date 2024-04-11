@@ -88,9 +88,11 @@ class Client extends EventEmitter {
 
         const puppeteerOpts = this.options.puppeteer;
         if (puppeteerOpts && puppeteerOpts.browserWSEndpoint) {
+            console.log(':::puppeteerOpts browserWSEndpoint')
             browser = await puppeteer.connect(puppeteerOpts);
             page = await browser.newPage();
         } else {
+            console.log(':::!puppeteerOpts or !browserWSEndpoint')
             const browserArgs = [...(puppeteerOpts.args || [])];
             if(!browserArgs.find(arg => arg.includes('--user-agent'))) {
                 browserArgs.push(`--user-agent=${this.options.userAgent}`);
@@ -104,6 +106,7 @@ class Client extends EventEmitter {
 
         if (this.options.proxyAuthentication !== undefined) {
             await page.authenticate(this.options.proxyAuthentication);
+            console.log(':::proxyAuth authenticate()')
         }
       
         await page.setUserAgent(this.options.userAgent);
@@ -111,8 +114,9 @@ class Client extends EventEmitter {
 
         this.pupBrowser = browser;
         this.pupPage = page;
-
+        console.log(':::afterBrowserInitialized()')
         await this.authStrategy.afterBrowserInitialized();
+        console.log(':::initWebVersionCache()')
         await this.initWebVersionCache();
 
         // ocVersion (isOfficialClient patch)
@@ -127,7 +131,8 @@ class Client extends EventEmitter {
                 return error;
             };
         });
-        
+        console.log(':::load WhatsAppURL()')
+
         await page.goto(WhatsWebURL, {
             waitUntil: 'load',
             timeout: 0,
@@ -204,6 +209,8 @@ class Client extends EventEmitter {
         if (needAuthentication) {
             const { failed, failureEventPayload, restart } = await this.authStrategy.onAuthenticationNeeded();
             if(failed) {
+                console.log(':::session restore failed()')
+
                 /**
                  * Emitted when there has been an error while trying to restore an existing session
                  * @event Client#auth_failure
@@ -760,18 +767,22 @@ class Client extends EventEmitter {
         const versionContent = await webCache.resolve(requestedVersion);
 
         if(versionContent) {
-            await this.pupPage.setRequestInterception(true);
-            this.pupPage.on('request', async (req) => {
-                if(req.url() === WhatsWebURL) {
-                    req.respond({
-                        status: 200,
-                        contentType: 'text/html',
-                        body: versionContent
-                    }); 
-                } else {
-                    req.continue();
-                }
-            });
+            try {
+                await this.pupPage.setRequestInterception(true);
+                this.pupPage.on('request', async (req) => {
+                    if(req.url() === WhatsWebURL) {
+                        req.respond({
+                            status: 200,
+                            contentType: 'text/html',
+                            body: versionContent
+                        }); 
+                    } else {
+                        req.continue();
+                    }
+                });
+            } catch (e){
+                console.error('Error in client (initWebVersionCache)', e)
+            }
         } else {
             this.pupPage.on('response', async (res) => {
                 if(res.ok() && res.url() === WhatsWebURL) {

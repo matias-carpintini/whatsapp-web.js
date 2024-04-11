@@ -212,6 +212,7 @@ function notifyMessageStatus(payload) {
 }
 
 async function notifyMaxQrCodesReached(location_identifier) {
+    console.log('notifyMaxQrCodesReached/Notifying rails app of max QR codes reached...')
     await axios.post(`${railsAppBaseUrl()}/new_login`, {
         event_type: 'max_qr_codes_reached',
         location_identifier: location_identifier,
