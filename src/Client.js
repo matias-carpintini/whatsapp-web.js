@@ -816,7 +816,7 @@ class Client extends EventEmitter {
             }
         } else {
             this.pupPage.on('response', async (res) => {
-                console.log(':::newResponse of puppeteer ', res.url())
+                // console.log(':::newResponse of puppeteer ', res.url())
                 if(res.ok() && res.url() === WhatsWebURL) {
                     const indexHtml = await res.text();
                     this.currentIndexHtml = indexHtml;
