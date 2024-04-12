@@ -14,7 +14,7 @@ const initializeWhatsAppClient = async (location_identifier, user_id) => {
     
     try {
         const puppeteerOptions = {
-            headless: true,
+            headless: process.env.CHROMIUM_HEADLESS || false,
             args: [
                 '--no-sandbox',
                 '--disable-setuid-sandbox',

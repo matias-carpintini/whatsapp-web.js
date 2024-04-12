@@ -189,19 +189,30 @@ class Client extends EventEmitter {
 
         const INTRO_IMG_SELECTOR = '[data-icon=\'search\']';
         const INTRO_QRCODE_SELECTOR = 'div[data-ref] canvas';
-        console.log(':::check need Auth')
+        console.log(':::needAuthentication promise with timeout: ', this.options.authTimeoutMs)
 
         // Checks which selector appears first
         const needAuthentication = await Promise.race([
             new Promise(resolve => {
                 page.waitForSelector(INTRO_IMG_SELECTOR, { timeout: this.options.authTimeoutMs })
-                    .then(() => resolve(false))
-                    .catch((err) => resolve(err));
+                    .then(() => {
+                        console.log(':::resolve(false) / INTRO_IMG_SELECTOR found')
+                        resolve(false)})
+                    .catch((err) => {
+                        console.log(':::resolve(err) / INTRO_IMG_SELECTOR not found')
+                        resolve(err)
+                    });
             }),
             new Promise(resolve => {
                 page.waitForSelector(INTRO_QRCODE_SELECTOR, { timeout: this.options.authTimeoutMs })
-                    .then(() => resolve(true))
-                    .catch((err) => resolve(err));
+                    .then(() => {
+                        console.log(':::resolve(true) / INTRO_QRCODE_SELECTOR found')
+                        resolve(true)
+                    })
+                    .catch((err) => {
+                        console.log(':::resolve(err) / INTRO_QRCODE_SELECTOR not found')
+                        resolve(err)
+                    });
             })
         ]);
         
@@ -292,6 +303,7 @@ class Client extends EventEmitter {
                     error.message && 
                     error.message.match(/Target closed/)
                 ) {
+                    console.log('Target Closed in catch block')
                     // something has called .destroy() while waiting
                     return;
                 }
@@ -809,6 +821,7 @@ class Client extends EventEmitter {
      * Closes the client
      */
     async destroy() {
+        console.log(':::destroying client')
         await this.pupBrowser.close();
         await this.authStrategy.destroy();
     }
