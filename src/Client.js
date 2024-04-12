@@ -303,7 +303,6 @@ class Client extends EventEmitter {
                 await page.waitForSelector(INTRO_IMG_SELECTOR, { timeout: 0 });
                 console.log(':::waitForSelector success()')
             } catch(error) {
-                console.error('SCAN ERROR', error)
                 if (
                     error.name === 'ProtocolError' && 
                     error.message && 
@@ -312,6 +311,8 @@ class Client extends EventEmitter {
                     console.log('Target Closed in catch block')
                     // something has called .destroy() while waiting
                     return;
+                } else {
+                    console.log('SCAN ERROR in catch block unknown', error)
                 }
 
                 throw error;
