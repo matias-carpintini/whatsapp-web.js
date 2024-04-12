@@ -141,7 +141,7 @@ class Client extends EventEmitter {
 
         await page.goto(WhatsWebURL, {
             waitUntil: 'load',
-            timeout: 0,
+            timeout: this.options.authTimeoutMs,
             referer: 'https://whatsapp.com/'
         });
         console.log(':::loaded WAURL success()')
@@ -816,6 +816,7 @@ class Client extends EventEmitter {
             }
         } else {
             this.pupPage.on('response', async (res) => {
+                console.log(':::newResponse of puppeteer ', res.url())
                 if(res.ok() && res.url() === WhatsWebURL) {
                     const indexHtml = await res.text();
                     this.currentIndexHtml = indexHtml;
