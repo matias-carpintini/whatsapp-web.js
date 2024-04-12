@@ -34,7 +34,7 @@ const initializeWhatsAppClient = async (location_identifier, user_id) => {
                 dataPath: process.env.AUTH_PATH || './.wwebjs_auth'
             }),
             puppeteer: puppeteerOptions,
-            authTimeoutMs: 60000,
+            authTimeoutMs: 30000,
         });
 
         // Setup event listeners for the client
