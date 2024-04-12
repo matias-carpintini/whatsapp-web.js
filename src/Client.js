@@ -789,15 +789,16 @@ class Client extends EventEmitter {
                 await this.authStrategy.disconnect();
                 this.emit(Events.DISCONNECTED, 'NAVIGATION');
                 await this.destroy();
+                await this.authStrategy.logout();
             }
         });
     }
 
     async initWebVersionCache() {
         const { type: webCacheType, ...webCacheOptions } = this.options.webVersionCache;
-        const webCache = WebCacheFactory.createWebCache(webCacheType, webCacheOptions);
-
+        const webCache = WebCacheFactory.createWebCache(webCacheType, webCacheOptions); 
         const requestedVersion = this.options.webVersion;
+        console.log({requestedVersion})
         const versionContent = await webCache.resolve(requestedVersion);
 
         if(versionContent) {
