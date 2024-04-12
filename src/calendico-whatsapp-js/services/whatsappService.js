@@ -13,7 +13,7 @@ const initializeWhatsAppClient = async (location_identifier, user_id) => {
     addClientInitializing(location_identifier, true);
     
     try {
-        const headlessConfig = process.env.CHROMIUM_HEADLESS || false
+        const headlessConfig = process.env.CHROMIUM_HEADLESS || true
         console.log('Headless config:', headlessConfig)
         const puppeteerOptions = {
             headless: headlessConfig,
