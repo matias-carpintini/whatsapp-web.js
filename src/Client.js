@@ -90,7 +90,7 @@ class Client extends EventEmitter {
         try {
             if (puppeteerOpts && puppeteerOpts.browserWSEndpoint) {
                 console.log(':::puppeteerOpts browserWSEndpoint (Browser already initialized)')
-                browser = await puppeteer.connect(puppeteerOpts);
+                browser = await puppeteer.connect(puppeteerOpts); 
                 page = await browser.newPage();
             } else {
                 console.log(':::!puppeteerOpts or !browserWSEndpoint (No browser initialized)')
@@ -105,6 +105,7 @@ class Client extends EventEmitter {
                 browser = await puppeteer.launch({...puppeteerOpts, args: browserArgs});
                 page = (await browser.pages())[0];
             }
+            console.log('pupeeteer path: ', puppeteer.executablePath())
         } catch (err) {
             console.error(':::browser initialize() error:', err)
             return;
@@ -224,8 +225,10 @@ class Client extends EventEmitter {
         
         // Checks if an error occurred on the first found selector. The second will be discarded and ignored by .race;
         console.log(':::checks if an error occurred on the first found selector. The second will be discarded and ignored by .race;')
-        if (needAuthentication instanceof Error) throw needAuthentication;
-        
+        if (needAuthentication instanceof Error) {
+            console.log(':::throwing needAuthentication')
+            throw needAuthentication;
+        }
         // Scan-qrcode selector was found. Needs authentication
         if (needAuthentication) {
             console.log(':::Scan-qrcode selector was found. Needs authentication')
