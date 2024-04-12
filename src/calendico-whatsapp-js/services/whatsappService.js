@@ -13,8 +13,10 @@ const initializeWhatsAppClient = async (location_identifier, user_id) => {
     addClientInitializing(location_identifier, true);
     
     try {
+        const headlessConfig = process.env.CHROMIUM_HEADLESS || false
+        console.log('Headless config:', headlessConfig)
         const puppeteerOptions = {
-            headless: process.env.CHROMIUM_HEADLESS || false,
+            headless: headlessConfig,
             args: [
                 '--no-sandbox',
                 '--disable-setuid-sandbox',
@@ -22,7 +24,7 @@ const initializeWhatsAppClient = async (location_identifier, user_id) => {
             ]
         };
         if (process.env.CHROMIUM_EXECUTABLE_PATH) {
-            //console.log('Using Chromium from', process.env.CHROMIUM_EXECUTABLE_PATH)
+            console.log('Using Chromium from', process.env.CHROMIUM_EXECUTABLE_PATH)
             puppeteerOptions.executablePath = process.env.CHROMIUM_EXECUTABLE_PATH;
         }
         
@@ -120,6 +122,7 @@ const setupClientEventListeners = (client, location_identifier, user_id) => {
     client.on('disconnected', async (reason) => {
         const client_number = client.info.wid.user;
         console.log(`/setup/client.on.disconnected/loc: (${location_identifier}) was logged out: `, reason);
+        // TO DO => NAVIGATION reason to could be first time to reinitialize. 
         await axios.post(`${railsAppBaseUrl()}/new_login`, {
             event_type: 'logout',
             user_id: user_id,
