@@ -100,7 +100,8 @@ class Client extends EventEmitter {
                 }
                 // navigator.webdriver fix
                 browserArgs.push('--disable-blink-features=AutomationControlled');
-
+                console.log({puppeteerOpts})
+                console.log({browserArgs})
                 browser = await puppeteer.launch({...puppeteerOpts, args: browserArgs});
                 page = (await browser.pages())[0];
             }
