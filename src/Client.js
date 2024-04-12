@@ -87,21 +87,26 @@ class Client extends EventEmitter {
         await this.authStrategy.beforeBrowserInitialized();
 
         const puppeteerOpts = this.options.puppeteer;
-        if (puppeteerOpts && puppeteerOpts.browserWSEndpoint) {
-            console.log(':::puppeteerOpts browserWSEndpoint')
-            browser = await puppeteer.connect(puppeteerOpts);
-            page = await browser.newPage();
-        } else {
-            console.log(':::!puppeteerOpts or !browserWSEndpoint')
-            const browserArgs = [...(puppeteerOpts.args || [])];
-            if(!browserArgs.find(arg => arg.includes('--user-agent'))) {
-                browserArgs.push(`--user-agent=${this.options.userAgent}`);
-            }
-            // navigator.webdriver fix
-            browserArgs.push('--disable-blink-features=AutomationControlled');
+        try {
+            if (puppeteerOpts && puppeteerOpts.browserWSEndpoint) {
+                console.log(':::puppeteerOpts browserWSEndpoint (Browser already initialized)')
+                browser = await puppeteer.connect(puppeteerOpts);
+                page = await browser.newPage();
+            } else {
+                console.log(':::!puppeteerOpts or !browserWSEndpoint (No browser initialized)')
+                const browserArgs = [...(puppeteerOpts.args || [])];
+                if(!browserArgs.find(arg => arg.includes('--user-agent'))) {
+                    browserArgs.push(`--user-agent=${this.options.userAgent}`);
+                }
+                // navigator.webdriver fix
+                browserArgs.push('--disable-blink-features=AutomationControlled');
 
-            browser = await puppeteer.launch({...puppeteerOpts, args: browserArgs});
-            page = (await browser.pages())[0];
+                browser = await puppeteer.launch({...puppeteerOpts, args: browserArgs});
+                page = (await browser.pages())[0];
+            }
+        } catch (err) {
+            console.error(':::browser initialize() error:', err)
+            return;
         }
 
         if (this.options.proxyAuthentication !== undefined) {
