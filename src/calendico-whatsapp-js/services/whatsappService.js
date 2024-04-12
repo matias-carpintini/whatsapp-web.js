@@ -14,7 +14,7 @@ const initializeWhatsAppClient = async (location_identifier, user_id) => {
     
     try {
         const headlessConfig = process.env.CHROMIUM_HEADLESS || true
-        console.log('Headless config:', headlessConfig)
+        console.log(`${location_identifier} // Headless config: ${headlessConfig}`)
         const puppeteerOptions = {
             headless: headlessConfig,
             args: [
@@ -24,7 +24,7 @@ const initializeWhatsAppClient = async (location_identifier, user_id) => {
             ]
         };
         if (process.env.CHROMIUM_EXECUTABLE_PATH) {
-            console.log('Using Chromium from', process.env.CHROMIUM_EXECUTABLE_PATH)
+            console.log(`${location_identifier} Using Chromium from ${process.env.CHROMIUM_EXECUTABLE_PATH}`)
             puppeteerOptions.executablePath = process.env.CHROMIUM_EXECUTABLE_PATH;
         }
         
@@ -47,7 +47,7 @@ const initializeWhatsAppClient = async (location_identifier, user_id) => {
         storeDataClient(location_identifier, user_id);
 
     } catch (error) {
-        console.error(`Failed to initialize WhatsApp client for ${location_identifier}:`, error);
+        console.error(`${location_identifier} Failed to initialize WhatsApp client. Error: `, error);
     }
 };
 
@@ -55,7 +55,7 @@ const setupClientEventListeners = (client, location_identifier, user_id) => {
     client.on('qr', async (qr) => {
         incrementQrCodeDelivery(location_identifier);
         if (maxQrCodeDeliveriesReached(location_identifier)) {
-            console.log('client.on.qr/Max QR code deliveries reached for location: ', location_identifier);
+            console.log(`${location_identifier} :::client.on.qr/Max QR code deliveries reached`);
             resetQrCodeDelivery(location_identifier);
             removeClientInitializing(location_identifier);
             await notifyMaxQrCodesReached(location_identifier);
@@ -66,7 +66,7 @@ const setupClientEventListeners = (client, location_identifier, user_id) => {
         }
         // Send QR code to Rails app instead of logging it
         //console.log(`/setup/client.on.qr/QR generated code for ${location_identifier}:`, qr);
-        console.log(`/setup/client.on.qr/location_identifier: ${location_identifier}, user_id: ${user_id}`);
+        console.log(`${location_identifier}/setup/client.on.qr, user_id: ${user_id}`);
         try {
             qrcodeTerminal.generate(qr, { small: true });
             const qrcodeUrl = process.env.RAILS_APP_URL || 'http://localhost:3000';
@@ -76,26 +76,26 @@ const setupClientEventListeners = (client, location_identifier, user_id) => {
                 user_id: user_id
             });
         } catch (error) {
-            console.error(`Failed to send QR code for ${location_identifier}. CODE: ${error.code}`);
+            console.error(`${location_identifier} Failed to send QR code. CODE: ${error.code}`);
         }
     });
 
     client.on('remote_session_saved', () => {
-        console.log('/setup/client.on.remote_session_saved for session:', location_identifier);
+        console.log(`${location_identifier} //setup/client.on.remote_session_saved.`);
     });
 
     client.on('authenticated', () => {
         // Save the new session data to the database
-        console.info('/setup/client.on.authenticated/This can take up to a minute depending on the size of the session data, so please wait.');
+        console.info(`${location_identifier} //setup/client.on.authenticated/This can take up to a minute depending on the size of the session data, so please wait.`);
     });
 
     client.on('auth_failure', msg => {
         // Fired if session restore was unsuccessful
-        console.error('/setup/client.on.auth_failure/AUTHENTICATION FAILURE: ', msg);
+        console.error(`${location_identifier} //setup/client.on.auth_failure/AUTHENTICATION FAILURE: `, msg);
     });
 
     client.on('ready', async () => {
-        console.log(`/setup/client.on.ready => ${location_identifier}!`);
+        console.log(`${location_identifier} //setup/client.on.ready`);
         removeClientInitializing(location_identifier);
         const client_number = client.info.wid.user;
         const client_platform = client.info.platform;
@@ -108,20 +108,20 @@ const setupClientEventListeners = (client, location_identifier, user_id) => {
             client_platform: client_platform,
             client_pushname: client_pushname
         }).catch(error => {
-            console.error('/setup/client.on.ready/Error sending ready event to rails app:', error);
+            console.error(`${location_identifier} // setup/client.on.ready/Error sending ready event to rails app:`, error);
         });
     });
 
     // Handle other necessary events like 'message', 'disconnected', etc.
     client.on('message', (message) => {
         processMessage(client, location_identifier, message).catch(error => {
-            console.error('/setup/client.on.message/Error in processMessage:', error);
+            console.error(`${location_identifier} // setup/client.on.message/Error in processMessage:`, error);
         });
     });
 
     client.on('disconnected', async (reason) => {
         const client_number = client.info.wid.user;
-        console.log(`/setup/client.on.disconnected/loc: (${location_identifier}) was logged out: `, reason);
+        console.log(`${location_identifier} // /setup/client.on.disconnected/loc: (${location_identifier}) was logged out: `, reason);
         // TO DO => NAVIGATION reason to could be first time to reinitialize. 
         await axios.post(`${railsAppBaseUrl()}/new_login`, {
             event_type: 'logout',
@@ -129,7 +129,7 @@ const setupClientEventListeners = (client, location_identifier, user_id) => {
             phone: client_number,
             location_identifier: location_identifier,
         }).catch(error => {
-            console.error('/setup/client.on.disconnected/Error sending ready event to rails app:', error);
+            console.error(`${location_identifier} // setup/client.on.disconnected/Error sending ready event to rails app:`, error);
         });
     });
 
@@ -147,22 +147,22 @@ const setupClientEventListeners = (client, location_identifier, user_id) => {
     });
 
     process.on('SIGINT', async () => {
-        console.log('(SIGINT) Shutting down...');
+        console.log(`${location_identifier} // (SIGINT) Shutting down...`);
         await client.destroy();
         // add delay to wait for the client to be destroyed
         setTimeout(() => {
-            console.log('(SIGINT)timeout done, after destroying client');
+            console.log(`${location_identifier} // (SIGINT)timeout done, after destroying client`);
             process.exit(0);
         }, 3000);
-        console.log('(SIGINT) after destroying client');
+        console.log(`${location_identifier} // (SIGINT) after destroying client`);
         process.exit(0);
     });
 
     client.on('change_state', (state) => {
-        console.log('STATE_CHANGE', state)
+        console.log(`${location_identifier} // STATE_CHANGE`, state)
     })
     client.on('loading_screen', (percent, message) => {
-        console.log('client.on.loading_screen/LOADING SCREEN: ', percent, message);
+        console.log(`${location_identifier} // client.on.loading_screen/LOADING SCREEN: `, percent, message);
     });
 };
 
@@ -192,7 +192,7 @@ async function processMessage(client, location_identifier, message) {
             forwardMessageToRails(client_phone_number, location_identifier, message_body);
         }
     } catch (error) {
-        console.error('processMessage/Error obtaining chat:', error);
+        console.error(`${location_identifier} // processMessage/Error obtaining chat:`, error);
     }
 }
 
@@ -203,19 +203,19 @@ function forwardMessageToRails(client_phone_number, location_identifier, message
         location_identifier: location_identifier,
         message_body: message_body
     }).catch(error => { 
-        console.error('forwardMessageToRails/Error forwarding message to rails app:', error);
+        console.error(`${location_identifier} // forwardMessageToRails/Error forwarding message to rails app:`, error);
     });
 }
 
 function notifyMessageStatus(payload) {
     //console.log('notifyMessageStatus/Forwarding message to rails app...');
     axios.post(`${railsAppBaseUrl()}/message_status`, payload).catch(error => { 
-        console.error('notifyMessageStatus/Error forwarding message to rails app:', error);
+        console.error(`${location_identifier} // notifyMessageStatus/Error forwarding message to rails app:`, error);
     });
 }
 
 async function notifyMaxQrCodesReached(location_identifier) {
-    console.log('notifyMaxQrCodesReached/Notifying rails app of max QR codes reached...')
+    console.log(`${location_identifier} // notifyMaxQrCodesReached/Notifying rails app of max QR codes reached...`)
     await axios.post(`${railsAppBaseUrl()}/new_login`, {
         event_type: 'max_qr_codes_reached',
         location_identifier: location_identifier,
