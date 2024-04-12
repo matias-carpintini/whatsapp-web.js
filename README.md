@@ -123,3 +123,9 @@ limitations under the License.
 - yum install mongodb-org-server-7.0.8-1.amzn2023.x86_64.rpm
 - sudo systemctl start mongod
 - sudo tail /var/log/mongodb/mongod.log to see logs
+
+
+### Pupeeteer / Chromium Build (Server)
+
+- Pupeeteer/Core is running: 18.2.1
+- Installing chrome-linux:  /home/ec2-user/whatsapp-web.js/node_modules/puppeteer-core/.local-chromium/linux-1045629/chrome-linux/chrome
