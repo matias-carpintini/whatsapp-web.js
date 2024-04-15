@@ -136,7 +136,7 @@ class Client extends EventEmitter {
                 return error;
             };
         });
-        console.log(':::goto WAURL()')
+        console.log(':::loading... WhatsAppURL()')
         await page.goto(WhatsWebURL, {
             waitUntil: 'load',
             timeout: 60000,
@@ -195,18 +195,22 @@ class Client extends EventEmitter {
         const INTRO_QRCODE_SELECTOR = 'div[data-ref] canvas';
 
         // Checks which selector appears first
-        const needAuthentication = await Promise.race([
-            new Promise(resolve => {
-                page.waitForSelector(INTRO_IMG_SELECTOR, { timeout: this.options.authTimeoutMs })
-                    .then(() => resolve(false))
-                    .catch((err) => resolve(err));
-            }),
-            new Promise(resolve => {
-                page.waitForSelector(INTRO_QRCODE_SELECTOR, { timeout: this.options.authTimeoutMs })
-                    .then(() => resolve(true))
-                    .catch((err) => resolve(err));
-            })
-        ]);
+        try {
+            const needAuthentication = await Promise.race([
+                new Promise(resolve => {
+                    page.waitForSelector(INTRO_IMG_SELECTOR, { timeout: 120000 })
+                        .then(() => resolve(false))
+                        .catch((err) => resolve(err));
+                }),
+                new Promise(resolve => {
+                    page.waitForSelector(INTRO_QRCODE_SELECTOR, { timeout: 120000 })
+                        .then(() => resolve(true))
+                        .catch((err) => resolve(err));
+                })
+            ]);
+        } catch (error) {
+            console.log(':::waitForSelector error', error)
+        }
 
         // Checks if an error occurred on the first found selector. The second will be discarded and ignored by .race;
         if (needAuthentication instanceof Error) throw needAuthentication;
@@ -563,7 +567,9 @@ class Client extends EventEmitter {
              * @event Client#change_state
              * @param {WAState} state the new connection state
              */
+            console.log('=======State changed:', state);
             this.emit(Events.STATE_CHANGED, state);
+
 
             const ACCEPTED_STATES = [WAState.CONNECTED, WAState.OPENING, WAState.PAIRING, WAState.TIMEOUT];
 
@@ -786,6 +792,7 @@ class Client extends EventEmitter {
      * Closes the client
      */
     async destroy() {
+        console.log(':::destroying client')
         await this.pupBrowser.close();
         await this.authStrategy.destroy();
     }
