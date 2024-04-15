@@ -103,6 +103,7 @@ class Client extends EventEmitter {
         } else {
             await this.pupPage.evaluate(ExposeLegacyAuthStore, moduleRaid.toString());
         }
+        console.log('::: needAuth definition: ')
 
         const needAuthentication = await this.pupPage.evaluate(async () => {
             let state = window.AuthStore.AppState.state;
@@ -125,10 +126,11 @@ class Client extends EventEmitter {
             state = window.AuthStore.AppState.state;
             return state == 'UNPAIRED' || state == 'UNPAIRED_IDLE';
         });
+        console.log('::: if needAuth: ')
 
         if (needAuthentication) {
             const { failed, failureEventPayload, restart } = await this.authStrategy.onAuthenticationNeeded();
-
+            console.log('::: needAuth true')
             if(failed) {
                 console.log(':::failed auth');
                 /**
