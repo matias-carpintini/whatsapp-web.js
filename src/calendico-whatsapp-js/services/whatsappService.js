@@ -34,7 +34,7 @@ const initializeWhatsAppClient = async (location_identifier, user_id) => {
                 dataPath: process.env.AUTH_PATH || './.wwebjs_auth'
             }),
             puppeteer: puppeteerOptions,
-            authTimeoutMs: 60000,
+            authTimeoutMs: 30000,
         });
 
         // Setup event listeners for the client
@@ -123,6 +123,7 @@ const setupClientEventListeners = (client, location_identifier, user_id) => {
     client.on('disconnected', async (reason) => {
         const client_number = client.info.wid.user;
         console.log(`${location_identifier} // /setup/client.on.disconnected/loc: (${location_identifier}) was logged out: `, reason);
+        removeDataClient(location_identifier);
         // TO DO => NAVIGATION reason to could be first time to reinitialize. 
         await axios.post(`${railsAppBaseUrl()}/new_login`, {
             event_type: 'logout',

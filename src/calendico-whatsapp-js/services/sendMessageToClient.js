@@ -63,7 +63,7 @@ async function send_message_to_client(
                     "Client session expired. Please try again in a few seconds.",
             });
         } else { 
-            console.log(`sending message [${message_id}] => [${location_identifier}] => ${receiver_phone} => [${message.substr(0, 30)}...]`); 
+            // console.log(`sending message [${message_id}] => [${location_identifier}] => ${receiver_phone} => [${message.substr(0, 30)}...]`); 
             try {
                 const messageObject = await client.sendMessage(
                     `${receiver_phone}@c.us`,
