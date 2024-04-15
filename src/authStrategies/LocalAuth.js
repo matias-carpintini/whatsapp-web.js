@@ -16,7 +16,7 @@ class LocalAuth extends BaseAuthStrategy {
 
         const idRegex = /^[-_\w]+$/i;
         if(clientId && !idRegex.test(clientId)) {
-            throw new Error('LocalAuth/constructor/Invalid clientId. Only alphanumeric characters, underscores and hyphens are allowed.');
+            throw new Error('Invalid clientId. Only alphanumeric characters, underscores and hyphens are allowed.');
         }
 
         this.dataPath = path.resolve(dataPath || './.wwebjs_auth/');
@@ -24,25 +24,22 @@ class LocalAuth extends BaseAuthStrategy {
     }
 
     async beforeBrowserInitialized() {
-        try {
-            const puppeteerOpts = this.client.options.puppeteer;
-            const sessionDirName = this.clientId ? `session-${this.clientId}` : 'session';
-            const dirPath = path.join(this.dataPath, sessionDirName);
-            if(puppeteerOpts.userDataDir && puppeteerOpts.userDataDir !== dirPath) {
-                throw new Error('beforeBrowserInitialized/LocalAuth is not compatible with a user-supplied userDataDir.');
-            }
+        const puppeteerOpts = this.client.options.puppeteer;
+        const sessionDirName = this.clientId ? `session-${this.clientId}` : 'session';
+        const dirPath = path.join(this.dataPath, sessionDirName);
 
-            fs.mkdirSync(dirPath, { recursive: true });
-            
-            this.client.options.puppeteer = {
-                ...puppeteerOpts,
-                userDataDir: dirPath
-            };
-
-            this.userDataDir = dirPath;
-        } catch (err) {
-            console.error('beforeBrowserInitialized/LocalAuth:', err);
+        if(puppeteerOpts.userDataDir && puppeteerOpts.userDataDir !== dirPath) {
+            throw new Error('LocalAuth is not compatible with a user-supplied userDataDir.');
         }
+
+        fs.mkdirSync(dirPath, { recursive: true });
+        
+        this.client.options.puppeteer = {
+            ...puppeteerOpts,
+            userDataDir: dirPath
+        };
+
+        this.userDataDir = dirPath;
     }
 
     async logout() {
