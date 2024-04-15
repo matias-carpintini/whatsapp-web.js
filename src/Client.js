@@ -110,7 +110,9 @@ class Client extends EventEmitter {
             if (state === 'OPENING' || state === 'UNLAUNCHED' || state === 'PAIRING') {
                 // wait till state changes
                 await new Promise(r => {
+                    console.log('::: promise with state Opening/Pairing/Unlaunched')
                     window.AuthStore.AppState.on('change:state', function waitTillInit(_AppState, state) {
+                        console.log('::: waitTillInit', state)
                         if (state !== 'OPENING' && state !== 'UNLAUNCHED' && state !== 'PAIRING') {
                             window.AuthStore.AppState.off('change:state', waitTillInit);
                             r();
@@ -137,6 +139,7 @@ class Client extends EventEmitter {
                 this.emit(Events.AUTHENTICATION_FAILURE, failureEventPayload);
                 await this.destroy();
                 if (restart) {
+                    console.log('::: restart')
                     // session restore failed so try again but without session to force new authentication
                     return this.initialize();
                 }
@@ -1264,6 +1267,7 @@ class Client extends EventEmitter {
      * Force reset of connection state for the client
     */
     async resetState() {
+        console.log('::: resetState')
         await this.pupPage.evaluate(() => {
             window.Store.AppState.phoneWatchdog.shiftTimer.forceRunNow();
         });
