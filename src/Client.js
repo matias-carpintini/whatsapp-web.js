@@ -94,6 +94,7 @@ class Client extends EventEmitter {
     async inject(reinject = false) {
         console.log('::: inject/window.Debug.VERSION')
         await this.pupPage.waitForFunction('window.Debug?.VERSION != undefined', {timeout: this.options.authTimeoutMs});
+        console.log('::: inject getWebVERSION')
 
         const version = await this.getWWebVersion();
         const isCometOrAbove = parseInt(version.split('.')?.[1]) >= 3000;
@@ -103,6 +104,7 @@ class Client extends EventEmitter {
         } else {
             await this.pupPage.evaluate(ExposeLegacyAuthStore, moduleRaid.toString());
         }
+        console.log('::: needAuth definition: ')
 
         const needAuthentication = await this.pupPage.evaluate(async () => {
             let state = window.AuthStore.AppState.state;
@@ -110,7 +112,9 @@ class Client extends EventEmitter {
             if (state === 'OPENING' || state === 'UNLAUNCHED' || state === 'PAIRING') {
                 // wait till state changes
                 await new Promise(r => {
+                    console.log('::: promise with state Opening/Pairing/Unlaunched')
                     window.AuthStore.AppState.on('change:state', function waitTillInit(_AppState, state) {
+                        console.log('::: waitTillInit', state)
                         if (state !== 'OPENING' && state !== 'UNLAUNCHED' && state !== 'PAIRING') {
                             window.AuthStore.AppState.off('change:state', waitTillInit);
                             r();
@@ -123,10 +127,11 @@ class Client extends EventEmitter {
             state = window.AuthStore.AppState.state;
             return state == 'UNPAIRED' || state == 'UNPAIRED_IDLE';
         });
+        console.log('::: if needAuth: ')
 
         if (needAuthentication) {
             const { failed, failureEventPayload, restart } = await this.authStrategy.onAuthenticationNeeded();
-
+            console.log('::: needAuth true')
             if(failed) {
                 console.log(':::failed auth');
                 /**
@@ -137,6 +142,7 @@ class Client extends EventEmitter {
                 this.emit(Events.AUTHENTICATION_FAILURE, failureEventPayload);
                 await this.destroy();
                 if (restart) {
+                    console.log('::: restart')
                     // session restore failed so try again but without session to force new authentication
                     return this.initialize();
                 }
@@ -796,7 +802,9 @@ class Client extends EventEmitter {
      * @returns {Promise<string>}
      */
     async getWWebVersion() {
+        console.log('::: getWWebVersion')
         return await this.pupPage.evaluate(() => {
+            console.log('::: returning version ', window.Debug.VERSION)
             return window.Debug.VERSION;
         });
     }
@@ -1264,6 +1272,7 @@ class Client extends EventEmitter {
      * Force reset of connection state for the client
     */
     async resetState() {
+        console.log('::: resetState')
         await this.pupPage.evaluate(() => {
             window.Store.AppState.phoneWatchdog.shiftTimer.forceRunNow();
         });
