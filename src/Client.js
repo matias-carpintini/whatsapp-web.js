@@ -208,100 +208,100 @@ class Client extends EventEmitter {
                         .catch((err) => resolve(err));
                 })
             ]);
-        } catch (error) {
-            console.log(':::waitForSelector error', error)
-        }
+        
 
-        // Checks if an error occurred on the first found selector. The second will be discarded and ignored by .race;
-        if (needAuthentication instanceof Error) throw needAuthentication;
-
-        // Scan-qrcode selector was found. Needs authentication
-        if (needAuthentication) {
-            console.log(':::Scan-qrcode selector was found. Needs authentication')
-            const { failed, failureEventPayload, restart } = await this.authStrategy.onAuthenticationNeeded();
-            if(failed) {
-                console.log(':::session restore failed()')
-                /**
-                 * Emitted when there has been an error while trying to restore an existing session
-                 * @event Client#auth_failure
-                 * @param {string} message
-                 */
-                this.emit(Events.AUTHENTICATION_FAILURE, failureEventPayload);
-                await this.destroy();
-                if (restart) {
-                    // session restore failed so try again but without session to force new authentication
-                    return this.initialize();
-                }
-                return;
-            }
-
-            const QR_CONTAINER = 'div[data-ref]';
-            const QR_RETRY_BUTTON = 'div[data-ref] > span > button';
-            let qrRetries = 0;
-            console.log(':::qrChanged')
-            await page.exposeFunction('qrChanged', async (qr) => {
-                /**
-                * Emitted when a QR code is received
-                * @event Client#qr
-                * @param {string} qr QR Code
-                */
-                this.emit(Events.QR_RECEIVED, qr);
-                if (this.options.qrMaxRetries > 0) {
-                    qrRetries++;
-                    if (qrRetries > this.options.qrMaxRetries) {
-                        this.emit(Events.DISCONNECTED, 'Max qrcode retries reached');
-                        await this.destroy();
+            // Checks if an error occurred on the first found selector. The second will be discarded and ignored by .race;
+            if (needAuthentication instanceof Error) throw needAuthentication;
+        
+            // Scan-qrcode selector was found. Needs authentication
+            if (needAuthentication) {
+                console.log(':::Scan-qrcode selector was found. Needs authentication')
+                const { failed, failureEventPayload, restart } = await this.authStrategy.onAuthenticationNeeded();
+                if(failed) {
+                    console.log(':::session restore failed()')
+                    /**
+                     * Emitted when there has been an error while trying to restore an existing session
+                     * @event Client#auth_failure
+                     * @param {string} message
+                     */
+                    this.emit(Events.AUTHENTICATION_FAILURE, failureEventPayload);
+                    await this.destroy();
+                    if (restart) {
+                        // session restore failed so try again but without session to force new authentication
+                        return this.initialize();
                     }
-                }
-            });
-
-            await page.evaluate(function (selectors) {
-                const qr_container = document.querySelector(selectors.QR_CONTAINER);
-                window.qrChanged(qr_container.dataset.ref);
-
-                const obs = new MutationObserver((muts) => {
-                    muts.forEach(mut => {
-                        // Listens to qr token change
-                        if (mut.type === 'attributes' && mut.attributeName === 'data-ref') {
-                            window.qrChanged(mut.target.dataset.ref);
-                        }
-                        // Listens to retry button, when found, click it
-                        else if (mut.type === 'childList') {
-                            const retry_button = document.querySelector(selectors.QR_RETRY_BUTTON);
-                            if (retry_button) retry_button.click();
-                        }
-                    });
-                });
-                obs.observe(qr_container.parentElement, {
-                    subtree: true,
-                    childList: true,
-                    attributes: true,
-                    attributeFilter: ['data-ref'],
-                });
-            }, {
-                QR_CONTAINER,
-                QR_RETRY_BUTTON
-            });
-
-            // Wait for code scan
-            try {
-                await page.waitForSelector(INTRO_IMG_SELECTOR, { timeout: 60000 });
-            } catch(error) {
-                if (
-                    error.name === 'ProtocolError' && 
-                    error.message && 
-                    error.message.match(/Target closed/)
-                ) {
-                    console.log(':::target Closed')
-                    // something has called .destroy() while waiting
                     return;
-                } else {
-                    console.log('::: waitForSelector error', error)
                 }
 
-                throw error;
-            }
+                const QR_CONTAINER = 'div[data-ref]';
+                const QR_RETRY_BUTTON = 'div[data-ref] > span > button';
+                let qrRetries = 0;
+                console.log(':::qrChanged')
+                await page.exposeFunction('qrChanged', async (qr) => {
+                    /**
+                    * Emitted when a QR code is received
+                    * @event Client#qr
+                    * @param {string} qr QR Code
+                    */
+                    this.emit(Events.QR_RECEIVED, qr);
+                    if (this.options.qrMaxRetries > 0) {
+                        qrRetries++;
+                        if (qrRetries > this.options.qrMaxRetries) {
+                            this.emit(Events.DISCONNECTED, 'Max qrcode retries reached');
+                            await this.destroy();
+                        }
+                    }
+                });
 
+                await page.evaluate(function (selectors) {
+                    const qr_container = document.querySelector(selectors.QR_CONTAINER);
+                    window.qrChanged(qr_container.dataset.ref);
+
+                    const obs = new MutationObserver((muts) => {
+                        muts.forEach(mut => {
+                            // Listens to qr token change
+                            if (mut.type === 'attributes' && mut.attributeName === 'data-ref') {
+                                window.qrChanged(mut.target.dataset.ref);
+                            }
+                            // Listens to retry button, when found, click it
+                            else if (mut.type === 'childList') {
+                                const retry_button = document.querySelector(selectors.QR_RETRY_BUTTON);
+                                if (retry_button) retry_button.click();
+                            }
+                        });
+                    });
+                    obs.observe(qr_container.parentElement, {
+                        subtree: true,
+                        childList: true,
+                        attributes: true,
+                        attributeFilter: ['data-ref'],
+                    });
+                }, {
+                    QR_CONTAINER,
+                    QR_RETRY_BUTTON
+                });
+
+                // Wait for code scan
+                try {
+                    await page.waitForSelector(INTRO_IMG_SELECTOR, { timeout: 60000 });
+                } catch(error) {
+                    if (
+                        error.name === 'ProtocolError' && 
+                        error.message && 
+                        error.message.match(/Target closed/)
+                    ) {
+                        console.log(':::target Closed')
+                        // something has called .destroy() while waiting
+                        return;
+                    } else {
+                        console.log('::: waitForSelector error', error)
+                    }
+
+                    throw error;
+                }
+            }
+        } catch (error) {
+            console.log(':::error', error)
         }
 
         await page.evaluate(() => {
