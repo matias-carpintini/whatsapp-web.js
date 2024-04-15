@@ -92,11 +92,12 @@ class Client extends EventEmitter {
      * @property {boolean} reinject is this a reinject?
      */
     async inject(reinject = false) {
+        console.log('::: inject/window.Debug.VERSION')
         await this.pupPage.waitForFunction('window.Debug?.VERSION != undefined', {timeout: this.options.authTimeoutMs});
 
         const version = await this.getWWebVersion();
         const isCometOrAbove = parseInt(version.split('.')?.[1]) >= 3000;
-
+        console.log('::: inject: ',isCometOrAbove)
         if (isCometOrAbove) {
             await this.pupPage.evaluate(ExposeAuthStore);
         } else {
@@ -105,7 +106,7 @@ class Client extends EventEmitter {
 
         const needAuthentication = await this.pupPage.evaluate(async () => {
             let state = window.AuthStore.AppState.state;
-
+            console.log('::: needAuthentication: ', state)
             if (state === 'OPENING' || state === 'UNLAUNCHED' || state === 'PAIRING') {
                 // wait till state changes
                 await new Promise(r => {
@@ -116,6 +117,8 @@ class Client extends EventEmitter {
                         } 
                     });
                 }); 
+            } else {
+                console.log('::: needAuthentication (otherState) ', state)
             }
             state = window.AuthStore.AppState.state;
             return state == 'UNPAIRED' || state == 'UNPAIRED_IDLE';
@@ -125,6 +128,7 @@ class Client extends EventEmitter {
             const { failed, failureEventPayload, restart } = await this.authStrategy.onAuthenticationNeeded();
 
             if(failed) {
+                console.log(':::failed auth');
                 /**
                  * Emitted when there has been an error while trying to restore an existing session
                  * @event Client#auth_failure
@@ -151,10 +155,12 @@ class Client extends EventEmitter {
                     * @event Client#qr
                     * @param {string} qr QR Code
                     */
+                    console.log('::: qr Changed');
                     this.emit(Events.QR_RECEIVED, qr);
                     if (this.options.qrMaxRetries > 0) {
                         qrRetries++;
                         if (qrRetries > this.options.qrMaxRetries) {
+                            console.log('::: max QR Retries reached')
                             this.emit(Events.DISCONNECTED, 'Max qrcode retries reached');
                             await this.destroy();
                         }
@@ -164,6 +170,7 @@ class Client extends EventEmitter {
 
 
             await this.pupPage.evaluate(async () => {
+                console.log('::: pupPage evaluate keys');
                 const registrationInfo = await window.AuthStore.RegistrationUtils.waSignalStore.getRegistrationInfo();
                 const noiseKeyPair = await window.AuthStore.RegistrationUtils.waNoiseInfo.get();
                 const staticKeyB64 = window.AuthStore.Base64Tools.encodeB64(noiseKeyPair.staticKeyPair.pubKey);
@@ -179,6 +186,7 @@ class Client extends EventEmitter {
 
         if (!reinject) {
             await this.pupPage.exposeFunction('onAuthAppStateChangedEvent', async (state) => {
+                console.log('::: !reinject authStateChangedEvent', state);
                 if (state == 'UNPAIRED_IDLE') {
                     // refresh qr code
                     window.Store.Cmd.refreshQR();
@@ -186,6 +194,8 @@ class Client extends EventEmitter {
             });
 
             await this.pupPage.exposeFunction('onAppStateHasSyncedEvent', async () => {
+                console.log('::: onAppStateHasSyncedEvent');
+
                 const authEventPayload = await this.authStrategy.getAuthEventPayload();
                 /**
                  * Emitted when authentication is successful
@@ -201,7 +211,7 @@ class Client extends EventEmitter {
                     if (this.options.webVersionCache.type === 'local' && this.currentIndexHtml) {
                         const { type: webCacheType, ...webCacheOptions } = this.options.webVersionCache;
                         const webCache = WebCacheFactory.createWebCache(webCacheType, webCacheOptions);
-            
+                        console.log('::: persist Cache');
                         await webCache.persist(this.currentIndexHtml, version);
                     }
 
@@ -213,6 +223,7 @@ class Client extends EventEmitter {
                         await new Promise(r => setTimeout(r, 2000)); 
                         await this.pupPage.evaluate(ExposeLegacyStore);
                     }
+                    console.log('::: wait for window.Store');
 
                     // Check window.Store Injection
                     await this.pupPage.waitForFunction('window.Store != undefined');
