@@ -7,13 +7,12 @@ const moduleRaid = require('@pedroslopez/moduleraid/moduleraid');
 const Util = require('./util/Util');
 const InterfaceController = require('./util/InterfaceController');
 const { WhatsWebURL, DefaultOptions, Events, WAState } = require('./util/Constants');
-const { ExposeStore } = require('./util/Injected/Store');
-const { LoadUtils } = require('./util/Injected/Utils');
-const { ExposeLegacyStore } = require('./util/Injected/LegacyStore');
+const { ExposeStore, LoadUtils } = require('./util/Injected');
 const ChatFactory = require('./factories/ChatFactory');
 const ContactFactory = require('./factories/ContactFactory');
 const WebCacheFactory = require('./webCache/WebCacheFactory');
 const { ClientInfo, Message, MessageMedia, Contact, Location, Poll, GroupNotification, Label, Call, Buttons, List, Reaction } = require('./structures');
+const LegacySessionAuth = require('./authStrategies/LegacySessionAuth');
 const NoAuth = require('./authStrategies/NoAuth');
 
 /**
@@ -63,7 +62,20 @@ class Client extends EventEmitter {
         this.options = Util.mergeDefault(DefaultOptions, options);
         
         if(!this.options.authStrategy) {
-            this.authStrategy = new NoAuth();
+            if(Object.prototype.hasOwnProperty.call(this.options, 'session')) {
+                process.emitWarning(
+                    'options.session is deprecated and will be removed in a future release due to incompatibility with multi-device. ' +
+                    'Use the LocalAuth authStrategy, don\'t pass in a session as an option, or suppress this warning by using the LegacySessionAuth strategy explicitly (see https://wwebjs.dev/guide/authentication.html#legacysessionauth-strategy).',
+                    'DeprecationWarning'
+                );
+
+                this.authStrategy = new LegacySessionAuth({
+                    session: this.options.session,
+                    restartOnAuthFail: this.options.restartOnAuthFail
+                });
+            } else {
+                this.authStrategy = new NoAuth();
+            }
         } else {
             this.authStrategy = this.options.authStrategy;
         }
@@ -72,8 +84,6 @@ class Client extends EventEmitter {
 
         this.pupBrowser = null;
         this.pupPage = null;
-
-        this.currentIndexHtml = null;
 
         Util.setFfmpegPath(this.options.ffmpegPath);
     }
@@ -87,33 +97,23 @@ class Client extends EventEmitter {
         await this.authStrategy.beforeBrowserInitialized();
 
         const puppeteerOpts = this.options.puppeteer;
-        try {
-            if (puppeteerOpts && puppeteerOpts.browserWSEndpoint) {
-                console.log(':::puppeteerOpts browserWSEndpoint (Browser already initialized)')
-                browser = await puppeteer.connect(puppeteerOpts); 
-                page = await browser.newPage();
-            } else {
-                console.log(':::!puppeteerOpts or !browserWSEndpoint (No browser initialized)')
-                const browserArgs = [...(puppeteerOpts.args || [])];
-                if(!browserArgs.find(arg => arg.includes('--user-agent'))) {
-                    browserArgs.push(`--user-agent=${this.options.userAgent}`);
-                }
-                // navigator.webdriver fix
-                browserArgs.push('--disable-blink-features=AutomationControlled');
-                console.log({puppeteerOpts})
-                console.log({browserArgs})
-                browser = await puppeteer.launch({...puppeteerOpts, args: browserArgs});
-                page = (await browser.pages())[0];
+        if (puppeteerOpts && puppeteerOpts.browserWSEndpoint) {
+            browser = await puppeteer.connect(puppeteerOpts);
+            page = await browser.newPage();
+        } else {
+            const browserArgs = [...(puppeteerOpts.args || [])];
+            if(!browserArgs.find(arg => arg.includes('--user-agent'))) {
+                browserArgs.push(`--user-agent=${this.options.userAgent}`);
             }
-            console.log('pupeeteer path: ', puppeteer.executablePath())
-        } catch (err) {
-            console.error(':::browser initialize() error:', err)
-            return;
+            // navigator.webdriver fix
+            browserArgs.push('--disable-blink-features=AutomationControlled');
+            console.log('::: pupeeteer path: ', puppeteer.executablePath())
+            browser = await puppeteer.launch({...puppeteerOpts, args: browserArgs});
+            page = (await browser.pages())[0];
         }
 
         if (this.options.proxyAuthentication !== undefined) {
             await page.authenticate(this.options.proxyAuthentication);
-            console.log(':::proxyAuth authenticate()')
         }
       
         await page.setUserAgent(this.options.userAgent);
@@ -121,13 +121,11 @@ class Client extends EventEmitter {
 
         this.pupBrowser = browser;
         this.pupPage = page;
-        console.log(':::afterBrowserInitialized()')
+
         await this.authStrategy.afterBrowserInitialized();
-        console.log(':::initWebVersionCache()')
         await this.initWebVersionCache();
 
-        // ocVersion (isOfficialClient patch)
-        // remove on after 2.3000.x
+        // ocVesion (isOfficialClient patch)
         await page.evaluateOnNewDocument(() => {
             const originalError = Error;
             //eslint-disable-next-line no-global-assign
@@ -138,14 +136,14 @@ class Client extends EventEmitter {
                 return error;
             };
         });
-        console.log(':::loading... WhatsAppURL()')
-
+        console.log(':::goto WAURL()')
         await page.goto(WhatsWebURL, {
             waitUntil: 'load',
-            timeout: this.options.authTimeoutMs,
+            timeout: 60000,
             referer: 'https://whatsapp.com/'
         });
         console.log(':::loaded WAURL success()')
+
         await page.evaluate(`function getElementByXpath(path) {
             return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
           }`);
@@ -153,7 +151,6 @@ class Client extends EventEmitter {
         let lastPercent = null,
             lastPercentMessage = null;
         console.log(':::loading Screen exposeFunction()')
-
         await page.exposeFunction('loadingScreen', async (percent, message) => {
             if (lastPercent !== percent || lastPercentMessage !== message) {
                 this.emit(Events.LOADING_SCREEN, percent, message);
@@ -196,46 +193,30 @@ class Client extends EventEmitter {
 
         const INTRO_IMG_SELECTOR = '[data-icon=\'search\']';
         const INTRO_QRCODE_SELECTOR = 'div[data-ref] canvas';
-        console.log(':::needAuthentication promise with timeout: ', this.options.authTimeoutMs)
 
         // Checks which selector appears first
         const needAuthentication = await Promise.race([
             new Promise(resolve => {
                 page.waitForSelector(INTRO_IMG_SELECTOR, { timeout: this.options.authTimeoutMs })
-                    .then(() => {
-                        console.log(':::resolve(false) / INTRO_IMG_SELECTOR found')
-                        resolve(false)})
-                    .catch((err) => {
-                        console.log(':::resolve(err) / INTRO_IMG_SELECTOR not found')
-                        resolve(err)
-                    });
+                    .then(() => resolve(false))
+                    .catch((err) => resolve(err));
             }),
             new Promise(resolve => {
                 page.waitForSelector(INTRO_QRCODE_SELECTOR, { timeout: this.options.authTimeoutMs })
-                    .then(() => {
-                        console.log(':::resolve(true) / INTRO_QRCODE_SELECTOR found')
-                        resolve(true)
-                    })
-                    .catch((err) => {
-                        console.log(':::resolve(err) / INTRO_QRCODE_SELECTOR not found')
-                        resolve(err)
-                    });
+                    .then(() => resolve(true))
+                    .catch((err) => resolve(err));
             })
         ]);
-        
+
         // Checks if an error occurred on the first found selector. The second will be discarded and ignored by .race;
-        console.log(':::checks if an error occurred on the first found selector. The second will be discarded and ignored by .race;')
-        if (needAuthentication instanceof Error) {
-            console.log(':::throwing needAuthentication')
-            throw needAuthentication;
-        }
+        if (needAuthentication instanceof Error) throw needAuthentication;
+
         // Scan-qrcode selector was found. Needs authentication
         if (needAuthentication) {
             console.log(':::Scan-qrcode selector was found. Needs authentication')
             const { failed, failureEventPayload, restart } = await this.authStrategy.onAuthenticationNeeded();
             if(failed) {
                 console.log(':::session restore failed()')
-
                 /**
                  * Emitted when there has been an error while trying to restore an existing session
                  * @event Client#auth_failure
@@ -269,7 +250,6 @@ class Client extends EventEmitter {
                     }
                 }
             });
-            console.log(':::eval QR_CONTAINER selector')
 
             await page.evaluate(function (selectors) {
                 const qr_container = document.querySelector(selectors.QR_CONTAINER);
@@ -301,21 +281,18 @@ class Client extends EventEmitter {
 
             // Wait for code scan
             try {
-                console.log(':::eval WAIT FOR SELECTOR')
-
-                await page.waitForSelector(INTRO_IMG_SELECTOR, { timeout: 0 });
-                console.log(':::waitForSelector success()')
+                await page.waitForSelector(INTRO_IMG_SELECTOR, { timeout: 60000 });
             } catch(error) {
                 if (
                     error.name === 'ProtocolError' && 
                     error.message && 
                     error.message.match(/Target closed/)
                 ) {
-                    console.log('Target Closed in catch block')
+                    console.log(':::target Closed')
                     // something has called .destroy() while waiting
                     return;
                 } else {
-                    console.log('SCAN ERROR in catch block unknown', error)
+                    console.log('::: waitForSelector error', error)
                 }
 
                 throw error;
@@ -367,24 +344,7 @@ class Client extends EventEmitter {
             };
         });
 
-        const version = await this.getWWebVersion();
-        const isCometOrAbove = parseInt(version.split('.')?.[1]) >= 3000;
-        console.log(`:::version`, version)
-        console.log(`:::cacheOpts`, this.options.webVersionCache)
-        if (this.options.webVersionCache.type === 'local' && this.currentIndexHtml) {
-            const { type: webCacheType, ...webCacheOptions } = this.options.webVersionCache;
-            const webCache = WebCacheFactory.createWebCache(webCacheType, webCacheOptions);
-
-            await webCache.persist(this.currentIndexHtml, version);
-        }
-
-        if (isCometOrAbove) {
-            await page.evaluate(ExposeStore);
-        } else {
-            await page.evaluate(ExposeLegacyStore, moduleRaid.toString());
-        }
-
-
+        await page.evaluate(ExposeStore, moduleRaid.toString());
         const authEventPayload = await this.authStrategy.getAuthEventPayload();
 
         /**
@@ -604,7 +564,7 @@ class Client extends EventEmitter {
              * @param {WAState} state the new connection state
              */
             this.emit(Events.STATE_CHANGED, state);
-            console.log('=======State changed:', state);
+
             const ACCEPTED_STATES = [WAState.CONNECTED, WAState.OPENING, WAState.PAIRING, WAState.TIMEOUT];
 
             if (this.options.takeoverOnConflict) {
@@ -789,42 +749,34 @@ class Client extends EventEmitter {
                 await this.authStrategy.disconnect();
                 this.emit(Events.DISCONNECTED, 'NAVIGATION');
                 await this.destroy();
-                await this.authStrategy.logout();
             }
         });
     }
 
     async initWebVersionCache() {
         const { type: webCacheType, ...webCacheOptions } = this.options.webVersionCache;
-        const webCache = WebCacheFactory.createWebCache(webCacheType, webCacheOptions); 
+        const webCache = WebCacheFactory.createWebCache(webCacheType, webCacheOptions);
+
         const requestedVersion = this.options.webVersion;
-        console.log({requestedVersion})
         const versionContent = await webCache.resolve(requestedVersion);
 
         if(versionContent) {
-            try {
-                await this.pupPage.setRequestInterception(true);
-                this.pupPage.on('request', async (req) => {
-                    if(req.url() === WhatsWebURL) {
-                        req.respond({
-                            status: 200,
-                            contentType: 'text/html',
-                            body: versionContent
-                        }); 
-                    } else {
-                        req.continue();
-                    }
-                });
-            } catch (e){
-                console.error('Error in client (initWebVersionCache)', e)
-            }
+            await this.pupPage.setRequestInterception(true);
+            this.pupPage.on('request', async (req) => {
+                if(req.url() === WhatsWebURL) {
+                    req.respond({
+                        status: 200,
+                        contentType: 'text/html',
+                        body: versionContent
+                    }); 
+                } else {
+                    req.continue();
+                }
+            });
         } else {
             this.pupPage.on('response', async (res) => {
-                // console.log(':::newResponse of puppeteer ', res.url())
                 if(res.ok() && res.url() === WhatsWebURL) {
-                    const indexHtml = await res.text().catch(_=>_)
-                    await webCache.persist(indexHtml).catch(_=>_);
-                    this.currentIndexHtml = indexHtml;
+                    await webCache.persist(await res.text());
                 }
             });
         }
@@ -834,7 +786,6 @@ class Client extends EventEmitter {
      * Closes the client
      */
     async destroy() {
-        console.log(':::destroying client')
         await this.pupBrowser.close();
         await this.authStrategy.destroy();
     }
@@ -1144,8 +1095,14 @@ class Client extends EventEmitter {
     async setDisplayName(displayName) {
         const couldSet = await this.pupPage.evaluate(async displayName => {
             if(!window.Store.Conn.canSetMyPushname()) return false;
-            await window.Store.Settings.setPushname(displayName);
-            return true;
+
+            if(window.Store.MDBackend) {
+                await window.Store.Settings.setPushname(displayName);
+                return true;
+            } else {
+                const res = await window.Store.Wap.setPushname(displayName);
+                return !res.status || res.status === 200;
+            }
         }, displayName);
 
         return couldSet;
@@ -1467,7 +1424,7 @@ class Client extends EventEmitter {
                 const statusCode = participant.error ?? 200;
 
                 if (autoSendInviteV4 && statusCode === 403) {
-                    window.Store.Contact.gadd(participant.wid, { silent: true });
+                    window.Store.ContactCollection.gadd(participant.wid, { silent: true });
                     const addParticipantResult = await window.Store.GroupInviteV4.sendGroupInviteMessage(
                         await window.Store.Chat.find(participant.wid),
                         createGroupResult.wid._serialized,
