@@ -107,7 +107,7 @@ class Client extends EventEmitter {
                     await this.pupPage.evaluate(ExposeLegacyAuthStore, moduleRaid.toString());
                 }
             } catch (e){
-                console.error(e)
+                console.error('issue with ExposeAuthStore', e)
             }
             console.log(`::: ${this.location_identifier} =>  needAuth definition: `)
             let needAuthentication = false;
@@ -139,11 +139,11 @@ class Client extends EventEmitter {
                 console.error(e)
             }
         
-        console.log(`::: ${this.location_identifier} =>  if needAuth: `)
+        console.log(`::: ${this.location_identifier} =>  if needAuth? `)
 
         if (needAuthentication) {
+            console.log(`::: ${this.location_identifier} =>  if (needAuth) true`)
             const { failed, failureEventPayload, restart } = await this.authStrategy.onAuthenticationNeeded();
-            console.log(`::: ${this.location_identifier} =>  needAuth true`)
             if(failed) {
                 console.log(`::: ${this.location_identifier} => failed auth`);
                 /**
