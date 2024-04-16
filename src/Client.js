@@ -99,37 +99,41 @@ class Client extends EventEmitter {
         const version = await this.getWWebVersion();
         console.log('::: returned version', version)
         const isCometOrAbove = parseInt(version.split('.')?.[1]) >= 3000;
-        console.log('::: inject: ',isCometOrAbove)
-        if (isCometOrAbove) {
-            await this.pupPage.evaluate(ExposeAuthStore);
-        } else {
-            await this.pupPage.evaluate(ExposeLegacyAuthStore, moduleRaid.toString());
-        }
-        console.log('::: needAuth definition: ')
-
-        const needAuthentication = await this.pupPage.evaluate(async () => {
-            console.log(':::needAuthentication running')
-            let state = window.AuthStore.AppState.state;
-            console.log('::: needAuthentication: ', state)
-            if (state === 'OPENING' || state === 'UNLAUNCHED' || state === 'PAIRING') {
-                console.log('::: needAuthentication (Opening/Pairing/Unlaunched) ', state)
-                // wait till state changes
-                await new Promise(r => {
-                    console.log('::: promise with state Opening/Pairing/Unlaunched')
-                    window.AuthStore.AppState.on('change:state', function waitTillInit(_AppState, state) {
-                        console.log('::: waitTillInit', state)
-                        if (state !== 'OPENING' && state !== 'UNLAUNCHED' && state !== 'PAIRING') {
-                            window.AuthStore.AppState.off('change:state', waitTillInit);
-                            r();
-                        } 
-                    });
-                }); 
+        console.log('::: inject: ',isCometOrAbove);
+        try {
+            if (isCometOrAbove) {
+                await this.pupPage.evaluate(ExposeAuthStore);
             } else {
-                console.log('::: needAuthentication (otherState) ', state)
+                await this.pupPage.evaluate(ExposeLegacyAuthStore, moduleRaid.toString());
             }
-            state = window.AuthStore.AppState.state;
-            return state == 'UNPAIRED' || state == 'UNPAIRED_IDLE';
-        });
+            console.log('::: needAuth definition: ')
+
+            const needAuthentication = await this.pupPage.evaluate(async () => {
+                console.log(':::needAuthentication running')
+                let state = window.AuthStore.AppState.state;
+                console.log('::: needAuthentication: ', state)
+                if (state === 'OPENING' || state === 'UNLAUNCHED' || state === 'PAIRING') {
+                    console.log('::: needAuthentication (Opening/Pairing/Unlaunched) ', state)
+                    // wait till state changes
+                    await new Promise(r => {
+                        console.log('::: promise with state Opening/Pairing/Unlaunched')
+                        window.AuthStore.AppState.on('change:state', function waitTillInit(_AppState, state) {
+                            console.log('::: waitTillInit', state)
+                            if (state !== 'OPENING' && state !== 'UNLAUNCHED' && state !== 'PAIRING') {
+                                window.AuthStore.AppState.off('change:state', waitTillInit);
+                                r();
+                            } 
+                        });
+                    }); 
+                } else {
+                    console.log('::: needAuthentication (otherState) ', state)
+                }
+                state = window.AuthStore.AppState.state;
+                return state == 'UNPAIRED' || state == 'UNPAIRED_IDLE';
+            });
+        } catch (e){
+            console.error(e)
+        }
         console.log('::: if needAuth: ')
 
         if (needAuthentication) {
