@@ -9,7 +9,7 @@ const { extractNumber } = require('../utils/utilities');
 const axios = require('axios');
 
 const initializeWhatsAppClient = async (location_identifier, user_id) => {
-    console.log(`Initializing client... ${railsAppBaseUrl()} / ${location_identifier} by user ${user_id}...`);
+    console.log(`Initializing client... ${location_identifier} by user ${user_id}...`);
     addClientInitializing(location_identifier, true);
     
     try {
@@ -35,6 +35,7 @@ const initializeWhatsAppClient = async (location_identifier, user_id) => {
             }),
             puppeteer: puppeteerOptions,
             authTimeoutMs: 30000,
+            location_identifier: location_identifier
         });
 
         // Setup event listeners for the client
@@ -62,7 +63,7 @@ const setupClientEventListeners = (client, location_identifier, user_id) => {
             await notifyMaxQrCodesReached(location_identifier);
             client.destroy();
             removeClient(location_identifier);
-            removeDataClient(location_identifier);
+            // removeDataClient(location_identifier);
             return;
         }
         // Send QR code to Rails app instead of logging it
@@ -77,7 +78,7 @@ const setupClientEventListeners = (client, location_identifier, user_id) => {
                 user_id: user_id
             });
         } catch (error) {
-            console.error(`${location_identifier} Failed to send QR code. CODE: ${error.code}`);
+            console.error(`${location_identifier} Failed to send QR to Rails. CODE: ${error.code}`);
         }
     });
 
@@ -121,7 +122,12 @@ const setupClientEventListeners = (client, location_identifier, user_id) => {
     });
 
     client.on('disconnected', async (reason) => {
-        const client_number = client.info.wid.user;
+        let client_number = '000';
+        try {
+            client_number = client.info.wid.user;
+        } catch (e){
+            console.log('error: client number issue, no WID', location_identifier)
+        }
         console.log(`${location_identifier} // /setup/client.on.disconnected/loc: (${location_identifier}) was logged out: `, reason);
         removeDataClient(location_identifier);
         // TO DO => NAVIGATION reason to could be first time to reinitialize. 

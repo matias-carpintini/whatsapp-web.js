@@ -13,6 +13,7 @@ const storeDataClient = async (location_identifier, user_id) => {
     await store(location_identifier, user_id);
 };
 const removeDataClient = async (location_identifier, _user_id) => {
+    console.log(`::: ${location_identifier} removed from database`);
     await remove(location_identifier);
 };
 const getClient = (location_identifier) => {
