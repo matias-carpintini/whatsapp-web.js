@@ -817,8 +817,6 @@ class Client extends EventEmitter {
      */
     async getWWebVersion() {
         console.log(`::: ${this.location_identifier} =>  getWWebVersion`)
-        console.log(typeof this.pupPage)
-        console.log(typeof this.pupPage.evaluate)
         return await this.pupPage.evaluate(() => {
             console.log(`::: ${this.location_identifier} =>  returning version `, window.Debug.VERSION)
             return window.Debug.VERSION;

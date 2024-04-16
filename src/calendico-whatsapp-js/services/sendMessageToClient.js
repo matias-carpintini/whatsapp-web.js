@@ -49,7 +49,7 @@ async function send_message_to_client(
                     message: "Error getting client state",
                 });
         });
-        console.log("send_message_to_client/client.getState(): ", client_state);
+        console.log(`${location_identifier} => send_message_to_client/client.getState(): `, client_state);
         if (
             client_state === null ||
             client_state === "CONFLICT" ||
