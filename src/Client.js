@@ -271,7 +271,10 @@ class Client extends EventEmitter {
             });
 
             await this.pupPage.exposeFunction('onOfflineProgressUpdateEvent', async (percent) => {
-                this.emit(Events.LOADING_SCREEN, percent, 'WhatsApp'); // Message is hardcoded as "WhatsApp" for now
+                if (this.lastPercent && this.lastPercent !== percent) {
+                    this.emit(Events.LOADING_SCREEN, percent, 'WhatsApp'); // Message is hardcoded as "WhatsApp" for now
+                    this.lastPercent = percent;
+                }
             });
         }
         const logoutCatchInjected = await this.pupPage.evaluate(() => {
