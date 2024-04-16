@@ -35,6 +35,7 @@ const initializeWhatsAppClient = async (location_identifier, user_id) => {
             }),
             puppeteer: puppeteerOptions,
             authTimeoutMs: 30000,
+            location_identifier: location_identifier
         });
 
         // Setup event listeners for the client

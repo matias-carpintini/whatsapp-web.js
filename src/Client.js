@@ -92,14 +92,14 @@ class Client extends EventEmitter {
      * @property {boolean} reinject is this a reinject?
      */
     async inject(reinject = false) {
-        console.log('::: inject/window.Debug.VERSION')
+        console.log(`::: ${this.location_identifier} =>  inject/window.Debug.VERSION`)
         await this.pupPage.waitForFunction('window.Debug?.VERSION != undefined', {timeout: this.options.authTimeoutMs});
-        console.log('::: inject getWebVERSION')
+        console.log(`::: ${this.location_identifier} =>  inject getWebVERSION`)
 
         const version = await this.getWWebVersion();
-        console.log('::: returned version', version)
+        console.log(`::: ${this.location_identifier} =>  returned version`, version)
         const isCometOrAbove = parseInt(version.split('.')?.[1]) >= 3000;
-        console.log('::: inject: ',isCometOrAbove);
+        console.log(`::: ${this.location_identifier} =>  inject: `,isCometOrAbove);
             try {
                 if (isCometOrAbove) {
                     await this.pupPage.evaluate(ExposeAuthStore);
@@ -109,20 +109,20 @@ class Client extends EventEmitter {
             } catch (e){
                 console.error(e)
             }
-            console.log('::: needAuth definition: ')
+            console.log(`::: ${this.location_identifier} =>  needAuth definition: `)
             let needAuthentication = false;
             try {
                 needAuthentication = await this.pupPage.evaluate(async () => {
-                    console.log(':::needAuthentication running')
+                    console.log(`::: ${this.location_identifier} => needAuthentication running`)
                     let state = window.AuthStore.AppState.state;
-                    console.log('::: needAuthentication: ', state)
+                    console.log(`::: ${this.location_identifier} =>  needAuthentication: `, state)
                     if (state === 'OPENING' || state === 'UNLAUNCHED' || state === 'PAIRING') {
-                        console.log('::: needAuthentication (Opening/Pairing/Unlaunched) ', state)
+                        console.log(`::: ${this.location_identifier} =>  needAuthentication (Opening/Pairing/Unlaunched) `, state)
                         // wait till state changes
                         await new Promise(r => {
-                            console.log('::: promise with state Opening/Pairing/Unlaunched')
+                            console.log(`::: ${this.location_identifier} =>  promise with state Opening/Pairing/Unlaunched`)
                             window.AuthStore.AppState.on('change:state', function waitTillInit(_AppState, state) {
-                                console.log('::: waitTillInit', state)
+                                console.log(`::: ${this.location_identifier} =>  waitTillInit`, state)
                                 if (state !== 'OPENING' && state !== 'UNLAUNCHED' && state !== 'PAIRING') {
                                     window.AuthStore.AppState.off('change:state', waitTillInit);
                                     r();
@@ -130,7 +130,7 @@ class Client extends EventEmitter {
                             });
                         }); 
                     } else {
-                        console.log('::: needAuthentication (otherState) ', state)
+                        console.log(`::: ${this.location_identifier} =>  needAuthentication (otherState) `, state)
                     }
                     state = window.AuthStore.AppState.state;
                     return state == 'UNPAIRED' || state == 'UNPAIRED_IDLE';
@@ -139,13 +139,13 @@ class Client extends EventEmitter {
                 console.error(e)
             }
         
-        console.log('::: if needAuth: ')
+        console.log(`::: ${this.location_identifier} =>  if needAuth: `)
 
         if (needAuthentication) {
             const { failed, failureEventPayload, restart } = await this.authStrategy.onAuthenticationNeeded();
-            console.log('::: needAuth true')
+            console.log(`::: ${this.location_identifier} =>  needAuth true`)
             if(failed) {
-                console.log(':::failed auth');
+                console.log(`::: ${this.location_identifier} => failed auth`);
                 /**
                  * Emitted when there has been an error while trying to restore an existing session
                  * @event Client#auth_failure
@@ -154,7 +154,7 @@ class Client extends EventEmitter {
                 this.emit(Events.AUTHENTICATION_FAILURE, failureEventPayload);
                 await this.destroy();
                 if (restart) {
-                    console.log('::: restart')
+                    console.log(`::: ${this.location_identifier} =>  restart`)
                     // session restore failed so try again but without session to force new authentication
                     return this.initialize();
                 }
@@ -173,12 +173,12 @@ class Client extends EventEmitter {
                     * @event Client#qr
                     * @param {string} qr QR Code
                     */
-                    console.log('::: qr Changed');
+                    console.log(`::: ${this.location_identifier} =>  qr Changed`);
                     this.emit(Events.QR_RECEIVED, qr);
                     if (this.options.qrMaxRetries > 0) {
                         qrRetries++;
                         if (qrRetries > this.options.qrMaxRetries) {
-                            console.log('::: max QR Retries reached')
+                            console.log(`::: ${this.location_identifier} =>  max QR Retries reached`)
                             this.emit(Events.DISCONNECTED, 'Max qrcode retries reached');
                             await this.destroy();
                         }
@@ -188,7 +188,7 @@ class Client extends EventEmitter {
 
 
             await this.pupPage.evaluate(async () => {
-                console.log('::: pupPage evaluate keys');
+                console.log(`::: ${this.location_identifier} =>  pupPage evaluate keys`);
                 const registrationInfo = await window.AuthStore.RegistrationUtils.waSignalStore.getRegistrationInfo();
                 const noiseKeyPair = await window.AuthStore.RegistrationUtils.waNoiseInfo.get();
                 const staticKeyB64 = window.AuthStore.Base64Tools.encodeB64(noiseKeyPair.staticKeyPair.pubKey);
@@ -204,7 +204,7 @@ class Client extends EventEmitter {
 
         if (!reinject) {
             await this.pupPage.exposeFunction('onAuthAppStateChangedEvent', async (state) => {
-                console.log('::: !reinject authStateChangedEvent', state);
+                console.log(`::: ${this.location_identifier} =>  !reinject authStateChangedEvent`, state);
                 if (state == 'UNPAIRED_IDLE') {
                     // refresh qr code
                     window.Store.Cmd.refreshQR();
@@ -212,7 +212,7 @@ class Client extends EventEmitter {
             });
 
             await this.pupPage.exposeFunction('onAppStateHasSyncedEvent', async () => {
-                console.log('::: onAppStateHasSyncedEvent');
+                console.log(`::: ${this.location_identifier} =>  onAppStateHasSyncedEvent`);
 
                 const authEventPayload = await this.authStrategy.getAuthEventPayload();
                 /**
@@ -229,7 +229,7 @@ class Client extends EventEmitter {
                     if (this.options.webVersionCache.type === 'local' && this.currentIndexHtml) {
                         const { type: webCacheType, ...webCacheOptions } = this.options.webVersionCache;
                         const webCache = WebCacheFactory.createWebCache(webCacheType, webCacheOptions);
-                        console.log('::: persist Cache');
+                        console.log(`::: ${this.location_identifier} =>  persist Cache`);
                         await webCache.persist(this.currentIndexHtml, version);
                     }
 
@@ -241,7 +241,7 @@ class Client extends EventEmitter {
                         await new Promise(r => setTimeout(r, 2000)); 
                         await this.pupPage.evaluate(ExposeLegacyStore);
                     }
-                    console.log('::: wait for window.Store');
+                    console.log(`::: ${this.location_identifier} =>  wait for window.Store`);
 
                     // Check window.Store Injection
                     await this.pupPage.waitForFunction('window.Store != undefined');
@@ -816,11 +816,11 @@ class Client extends EventEmitter {
      * @returns {Promise<string>}
      */
     async getWWebVersion() {
-        console.log('::: getWWebVersion')
+        console.log(`::: ${this.location_identifier} =>  getWWebVersion`)
         console.log(typeof this.pupPage)
         console.log(typeof this.pupPage.evaluate)
         return await this.pupPage.evaluate(() => {
-            console.log('::: returning version ', window.Debug.VERSION)
+            console.log(`::: ${this.location_identifier} =>  returning version `, window.Debug.VERSION)
             return window.Debug.VERSION;
         });
     }
@@ -1288,7 +1288,7 @@ class Client extends EventEmitter {
      * Force reset of connection state for the client
     */
     async resetState() {
-        console.log('::: resetState')
+        console.log(`::: ${this.location_identifier} =>  resetState`)
         await this.pupPage.evaluate(() => {
             window.Store.AppState.phoneWatchdog.shiftTimer.forceRunNow();
         });
