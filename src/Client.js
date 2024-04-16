@@ -69,7 +69,7 @@ class Client extends EventEmitter {
         } else {
             this.authStrategy = this.options.authStrategy;
         }
-
+        this.location_identifier = (this.options.location_identifier)?this.options.location_identifier:' UNKNOWN';
         this.authStrategy.setup(this);
 
         /**
