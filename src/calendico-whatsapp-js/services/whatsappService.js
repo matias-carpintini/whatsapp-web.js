@@ -125,7 +125,7 @@ const setupClientEventListeners = (client, location_identifier, user_id) => {
         try {
             client_number = client.info.wid.user;
         } catch (e){
-            console.log('error: client number issue', e)
+            console.log('error: client number issue, no WID', location_identifier)
         }
         console.log(`${location_identifier} // /setup/client.on.disconnected/loc: (${location_identifier}) was logged out: `, reason);
         removeDataClient(location_identifier);
