@@ -18,7 +18,7 @@ function syncExistingClients() {
         console.log(`[database connected]... => ${dbUrl}`);
         const items = await ClientModel.find()
         items.map(async (i) => {
-            if (i.user_id == "1444"){
+            if (i.location_id == "693-322247143"){
                 console.log(`[sync] found client: ${i.location_id} / ${i.user_id}`);
                 await initializeWhatsAppClient(i.location_id, i.user_id);
                 }
