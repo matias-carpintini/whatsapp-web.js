@@ -78,7 +78,7 @@ const setupClientEventListeners = (client, location_identifier, user_id) => {
                 user_id: user_id
             });
         } catch (error) {
-            console.error(`${location_identifier} Failed to send QR code. CODE: ${error.code}`);
+            console.error(`${location_identifier} Failed to send QR to Rails. CODE: ${error.code}`);
         }
     });
 
