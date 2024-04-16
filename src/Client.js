@@ -108,9 +108,11 @@ class Client extends EventEmitter {
         console.log('::: needAuth definition: ')
 
         const needAuthentication = await this.pupPage.evaluate(async () => {
+            console.log(':::needAuthentication running')
             let state = window.AuthStore.AppState.state;
             console.log('::: needAuthentication: ', state)
             if (state === 'OPENING' || state === 'UNLAUNCHED' || state === 'PAIRING') {
+                console.log('::: needAuthentication (Opening/Pairing/Unlaunched) ', state)
                 // wait till state changes
                 await new Promise(r => {
                     console.log('::: promise with state Opening/Pairing/Unlaunched')
