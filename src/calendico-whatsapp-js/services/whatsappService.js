@@ -121,7 +121,12 @@ const setupClientEventListeners = (client, location_identifier, user_id) => {
     });
 
     client.on('disconnected', async (reason) => {
-        const client_number = client.info.wid.user;
+        let client_number = '000';
+        try {
+            client_number = client.info.wid.user;
+        } catch (e){
+            console.log('error: client number issue', e)
+        }
         console.log(`${location_identifier} // /setup/client.on.disconnected/loc: (${location_identifier}) was logged out: `, reason);
         removeDataClient(location_identifier);
         // TO DO => NAVIGATION reason to could be first time to reinitialize. 
