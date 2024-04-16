@@ -97,6 +97,7 @@ class Client extends EventEmitter {
         console.log('::: inject getWebVERSION')
 
         const version = await this.getWWebVersion();
+        console.log('::: returned version', version)
         const isCometOrAbove = parseInt(version.split('.')?.[1]) >= 3000;
         console.log('::: inject: ',isCometOrAbove)
         if (isCometOrAbove) {
@@ -803,6 +804,8 @@ class Client extends EventEmitter {
      */
     async getWWebVersion() {
         console.log('::: getWWebVersion')
+        console.log(typeof this.pupPage)
+        console.log(typeof this.pupPage.evaluate)
         return await this.pupPage.evaluate(() => {
             console.log('::: returning version ', window.Debug.VERSION)
             return window.Debug.VERSION;
