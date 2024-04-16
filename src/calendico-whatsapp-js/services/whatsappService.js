@@ -9,7 +9,7 @@ const { extractNumber } = require('../utils/utilities');
 const axios = require('axios');
 
 const initializeWhatsAppClient = async (location_identifier, user_id) => {
-    console.log(`Initializing client... ${railsAppBaseUrl()} / ${location_identifier} by user ${user_id}...`);
+    console.log(`Initializing client... ${location_identifier} by user ${user_id}...`);
     addClientInitializing(location_identifier, true);
     
     try {
