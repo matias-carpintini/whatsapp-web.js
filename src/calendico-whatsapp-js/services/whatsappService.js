@@ -63,7 +63,7 @@ const setupClientEventListeners = (client, location_identifier, user_id) => {
             await notifyMaxQrCodesReached(location_identifier);
             client.destroy();
             removeClient(location_identifier);
-            removeDataClient(location_identifier);
+            // removeDataClient(location_identifier);
             return;
         }
         // Send QR code to Rails app instead of logging it
