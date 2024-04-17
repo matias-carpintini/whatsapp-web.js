@@ -128,7 +128,7 @@ const setupClientEventListeners = (client, location_identifier, user_id) => {
         } catch (e){
             console.log('error: client number issue, no WID', location_identifier)
         }
-        console.log(`${location_identifier} // /setup/client.on.disconnected/loc: (${location_identifier}) was logged out: `, reason);
+        console.log(`${location_identifier} // setup/client.on.disconnected/loc: (${location_identifier}) was logged out: `, reason);
         removeDataClient(location_identifier);
         // TO DO => NAVIGATION reason to could be first time to reinitialize. 
         await axios.post(`${railsAppBaseUrl()}/new_login`, {
@@ -151,6 +151,7 @@ const setupClientEventListeners = (client, location_identifier, user_id) => {
             ACK_READ: 3
             ACK_PLAYED: 4
         */
+        // ASK: is it useful ?
         notifyMessageStatus({ message_serialized_id: msg.id._serialized, message_status: msg.ack });
     });
 
@@ -184,15 +185,12 @@ const incrementQrCodeDelivery = (location_identifier) => {
 }
 
 async function processMessage(client, location_identifier, message) {
-    //console.log('processMessage/These are all the properties of the message object:');
-    //printTree(message);
-    const client_phone_number = extractNumber(message.from);
-    const message_body = message.body;
-    if (client_phone_number != 'status'){
-        // received message.
-        // console.log(`CLIENT[${client_phone_number}] BODY[${message_body}] AUTHOR[${message.author}] DEVICETYPE[${message.deviceType}] FROM_ME?[${message.fromMe}]`);
-    }
     try {
+        const client_phone_number = extractNumber(message.from);
+        const message_body = message.body;
+        if (client_phone_number != 'status') { // logging chat
+            // console.log(`CLIENT[${client_phone_number}] BODY[${message_body}] AUTHOR[${message.author}] DEVICETYPE[${message.deviceType}] FROM_ME?[${message.fromMe}]`);
+        }
         const chat = await message.getChat();
         const groupChat = await chat.isGroup;
         //console.log('processMessage/Message is group: ', groupChat);
@@ -206,20 +204,27 @@ async function processMessage(client, location_identifier, message) {
 
 function forwardMessageToRails(client_phone_number, location_identifier, message_body) {
     //console.log('forwardMessageToRails/[forwardMessageToRails] Forwarding message to rails app...');
-    axios.post(`${railsAppBaseUrl()}/incoming_messages`, {
-        client_phone_number: client_phone_number,
-        location_identifier: location_identifier,
-        message_body: message_body
-    }).catch(error => { 
-        console.error(`${location_identifier} // forwardMessageToRails/Error forwarding message to rails app:`, error);
-    });
+    try {
+        axios.post(`${railsAppBaseUrl()}/incoming_messages`, {
+            client_phone_number: client_phone_number,
+            location_identifier: location_identifier,
+            message_body: message_body
+        }).catch(error => { 
+            console.error(`${location_identifier} // forwardMessageToRails/Error forwarding message to rails app:`, error);
+        });
+    } catch (e){
+        console.log(`${location_identifier} // [error] forwarding message to rails app: `, e)
+    }
 }
 
 function notifyMessageStatus(payload) {
-    //console.log('notifyMessageStatus/Forwarding message to rails app...');
-    axios.post(`${railsAppBaseUrl()}/message_status`, payload).catch(error => { 
-        console.error(`${location_identifier} // notifyMessageStatus/Error forwarding message to rails app:`, error);
-    });
+    try {
+        axios.post(`${railsAppBaseUrl()}/message_status`, payload).catch(error => { 
+            console.error(`${location_identifier} // notifyMessageStatus/Error forwarding message to rails app:`, error);
+        });
+    } catch (e){
+        console.log(`${location_identifier} // [error] forwarding statusMessage to rails app: `, e)
+    }
 }
 
 async function notifyMaxQrCodesReached(location_identifier) {
