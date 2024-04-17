@@ -100,10 +100,12 @@ class Client extends EventEmitter {
             console.log(`:${this.location_identifier} => [ERROR] inject window.Debug.VERSION error detail on line 98`, e)
         }
         console.log(`:${this.location_identifier} =>  inject getWebVERSION`)
+        let version = null;
         try {
-            const version = await this.getWWebVersion();
+            version = await this.getWWebVersion();
         } catch (e){
-            console.log(`:${this.location_identifier} => inject getWebVERSION error`, e) 
+            version = DEFAULT_VERSION;
+            console.log(`:${this.location_identifier} => inject getWebVERSION error, using default version`, e) 
         }
         console.log(`:${this.location_identifier} =>  returned version`, version)
         const isCometOrAbove = parseInt(version.split('.')?.[1]) >= 3000;
