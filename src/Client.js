@@ -97,7 +97,7 @@ class Client extends EventEmitter {
         try {
             await this.pupPage.waitForFunction('window.Debug?.VERSION != undefined', {timeout: this.options.authTimeoutMs});
         } catch (e){
-            console.log(`:${this.location_identifier} => [ERROR] inject window.Debug.VERSION error detail on line 98`, e)
+            console.log(`:${this.location_identifier} => [ERROR] inject window.Debug.VERSION error detail on line 98`, Util.prettifyError(e))
         }
         console.log(`:${this.location_identifier} =>  inject getWebVERSION`)
         let version = null;
@@ -105,7 +105,7 @@ class Client extends EventEmitter {
             version = await this.getWWebVersion();
         } catch (e){
             version = DEFAULT_VERSION;
-            console.log(`:${this.location_identifier} => inject getWebVERSION error, using default version`, e) 
+            console.log(`:${this.location_identifier} => inject getWebVERSION error, using default version`, Util.prettifyError(e)) 
         }
         console.log(`:${this.location_identifier} =>  returned version`, version)
         const isCometOrAbove = parseInt(version.split('.')?.[1]) >= 3000;
@@ -117,7 +117,7 @@ class Client extends EventEmitter {
                     await this.pupPage.evaluate(ExposeLegacyAuthStore, moduleRaid.toString());
                 }
             } catch (e){
-                console.error('issue with ExposeAuthStore', e)
+                console.error('issue with ExposeAuthStore', Util.prettifyError(e))
             }
             console.log(`:${this.location_identifier} =>  needAuth definition: `)
             let needAuthentication = false;
@@ -846,7 +846,7 @@ class Client extends EventEmitter {
                 return window.Debug.VERSION;
             });
         } catch (e){
-            console.error(`${this.location_identifier} // evaluate issue in getWWebVersion, returning default version`, e)
+            console.error(`${this.location_identifier} // evaluate issue in getWWebVersion, returning default version`, Util.prettifyError(e))
             return DEFAULT_VERSION;
         }
     }
@@ -1026,7 +1026,7 @@ class Client extends EventEmitter {
             }, chatId);
             return ChatFactory.create(this, chat);
         } catch (e) {
-            console.log(`${this.location_identifier} getChatById fail:`, e);
+            console.log(`${this.location_identifier} getChatById fail:`, Util.prettifyError(e));
             return null;
         }
     }

@@ -1,6 +1,7 @@
 'use strict';
 
 const path = require('path');
+const util = require('util');
 const Crypto = require('crypto');
 const { tmpdir } = require('os');
 const ffmpeg = require('fluent-ffmpeg');
@@ -16,6 +17,15 @@ class Util {
         throw new Error(`The ${this.constructor.name} class may not be instantiated.`);
     }
 
+    static prettifyError(obj){
+        return util.inspect(obj, {showHidden: false, depth: null, colors: false})
+    }
+    static extractNumber = (str) => {
+        let separator = str.includes('-') ? '-' : '@';
+        let numberBeforeSeparator = str.split(separator)[0];
+        return numberBeforeSeparator;
+    };
+    
     static generateHash(length) {
         var result = '';
         var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
