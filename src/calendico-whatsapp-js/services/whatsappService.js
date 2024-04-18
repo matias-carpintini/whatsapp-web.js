@@ -1,11 +1,10 @@
+const Util = require('../../util/Util');
 const { Client, LocalAuth } = require('./../../../index.js');
 const { addClientInitializing, removeClientInitializing } = require('../clients/ClientsInitializingSession');
 const { railsAppBaseUrl } = require('./../config/railsAppConfig');
 const { addQrCodeDelivery, resetQrCodeDelivery, getQrCodeDelivery, incrementQrCodeDeliveryFor, maxQrCodeDeliveriesReached } = require('../clients/qrCodeDeliveries');
-
 const qrcodeTerminal = require('qrcode-terminal');
-const { addClient, removeClient, removeDataClient, storeDataClient } = require('./../clients/ClientsConnected');
-const { extractNumber } = require('../utils/utilities');
+const { addClient, removeClient, removeDataClient, storeDataClient } = require('./../clients/ClientsConnected'); 
 const axios = require('axios');
 
 const initializeWhatsAppClient = async (location_identifier, user_id) => {
@@ -48,8 +47,8 @@ const initializeWhatsAppClient = async (location_identifier, user_id) => {
         addClient(location_identifier, client);
         storeDataClient(location_identifier, user_id);
 
-    } catch (error) {
-        console.error(`${location_identifier} Failed to initialize WhatsApp client. Error: `, error);
+    } catch (e) {
+        console.error(`${location_identifier} Failed to initialize WhatsApp client. Error: `, Util.prettifyError(e));
     }
 };
 
@@ -109,15 +108,15 @@ const setupClientEventListeners = (client, location_identifier, user_id) => {
             location_identifier: location_identifier,
             client_platform: client_platform,
             client_pushname: client_pushname
-        }).catch(error => {
-            console.error(`${location_identifier} // setup/client.on.ready/Error sending ready event to rails app:`, error);
+        }).catch(e => {
+            console.error(`${location_identifier} // setup/client.on.ready/Error sending ready event to rails app:`, Util.prettifyError(e));
         });
     });
 
     // Handle other necessary events like 'message', 'disconnected', etc.
     client.on('message', (message) => {
-        processMessage(client, location_identifier, message).catch(error => {
-            console.error(`${location_identifier} // setup/client.on.message/Error in processMessage:`, error);
+        processMessage(client, location_identifier, message).catch(e => {
+            console.error(`${location_identifier} // setup/client.on.message/Error in processMessage:`, Util.prettifyError(e));
         });
     });
 
@@ -128,7 +127,7 @@ const setupClientEventListeners = (client, location_identifier, user_id) => {
         } catch (e){
             console.log('error: client number issue, no WID', location_identifier)
         }
-        console.log(`${location_identifier} // /setup/client.on.disconnected/loc: (${location_identifier}) was logged out: `, reason);
+        console.log(`${location_identifier} // setup/client.on.disconnected/loc: (${location_identifier}) was logged out: `, reason);
         removeDataClient(location_identifier);
         // TO DO => NAVIGATION reason to could be first time to reinitialize. 
         await axios.post(`${railsAppBaseUrl()}/new_login`, {
@@ -136,12 +135,12 @@ const setupClientEventListeners = (client, location_identifier, user_id) => {
             user_id: user_id,
             phone: client_number,
             location_identifier: location_identifier,
-        }).catch(error => {
-            console.error(`${location_identifier} // setup/client.on.disconnected/Error sending ready event to rails app:`, error);
+        }).catch(e => {
+            console.error(`${location_identifier} // setup/client.on.disconnected/Error sending ready event to rails app:`, Util.prettifyError(e));
         });
     });
 
-    client.on('message_ack', (msg, ack) => {
+//    client.on('message_ack', (msg, ack) => {
         /*
             == ACK VALUES ==
             ACK_ERROR: -1
@@ -151,8 +150,9 @@ const setupClientEventListeners = (client, location_identifier, user_id) => {
             ACK_READ: 3
             ACK_PLAYED: 4
         */
-        notifyMessageStatus({ message_serialized_id: msg.id._serialized, message_status: msg.ack });
-    });
+        // ASK: is it useful ? for the moment no.
+        // notifyMessageStatus({ message_serialized_id: msg.id._serialized, message_status: msg.ack });
+ //   });
 
     process.on('SIGINT', async () => {
         console.log(`${location_identifier} // (SIGINT) Shutting down...`);
@@ -184,42 +184,46 @@ const incrementQrCodeDelivery = (location_identifier) => {
 }
 
 async function processMessage(client, location_identifier, message) {
-    //console.log('processMessage/These are all the properties of the message object:');
-    //printTree(message);
-    const client_phone_number = extractNumber(message.from);
-    const message_body = message.body;
-    if (client_phone_number != 'status'){
-        // received message.
-        // console.log(`CLIENT[${client_phone_number}] BODY[${message_body}] AUTHOR[${message.author}] DEVICETYPE[${message.deviceType}] FROM_ME?[${message.fromMe}]`);
-    }
     try {
+        const client_phone_number = Util.extractNumber(message.from);
+        const message_body = message.body;
+        /* 
+        if (client_phone_number != 'status') { // logging chat
+            console.log(`CLIENT[${client_phone_number}] BODY[${message_body}] AUTHOR[${message.author}] DEVICETYPE[${message.deviceType}] FROM_ME?[${message.fromMe}]`);
+        } */
         const chat = await message.getChat();
         const groupChat = await chat.isGroup;
         //console.log('processMessage/Message is group: ', groupChat);
         if (!groupChat) {
             forwardMessageToRails(client_phone_number, location_identifier, message_body);
         }
-    } catch (error) {
-        console.error(`${location_identifier} // processMessage/Error obtaining chat:`, error);
+    } catch (e) {
+        console.error(`${location_identifier} // processMessage/Error obtaining chat: `, Util.prettifyError(e));
     }
 }
 
 function forwardMessageToRails(client_phone_number, location_identifier, message_body) {
-    //console.log('forwardMessageToRails/[forwardMessageToRails] Forwarding message to rails app...');
-    axios.post(`${railsAppBaseUrl()}/incoming_messages`, {
-        client_phone_number: client_phone_number,
-        location_identifier: location_identifier,
-        message_body: message_body
-    }).catch(error => { 
-        console.error(`${location_identifier} // forwardMessageToRails/Error forwarding message to rails app:`, error);
-    });
+    try {
+        axios.post(`${railsAppBaseUrl()}/incoming_messages`, {
+            client_phone_number: client_phone_number,
+            location_identifier: location_identifier,
+            message_body: message_body
+        }).catch(e => { 
+            console.error(`${location_identifier} // forwardMessageToRails/Error forwarding message to rails app:`, Util.prettifyError(e));
+        });
+    } catch (e){
+        console.log(`${location_identifier} // [error] forwarding message to rails app: `, Util.prettifyError(e))
+    }
 }
 
 function notifyMessageStatus(payload) {
-    //console.log('notifyMessageStatus/Forwarding message to rails app...');
-    axios.post(`${railsAppBaseUrl()}/message_status`, payload).catch(error => { 
-        console.error(`${location_identifier} // notifyMessageStatus/Error forwarding message to rails app:`, error);
-    });
+    try {
+        axios.post(`${railsAppBaseUrl()}/message_status`, payload).catch(error => { 
+            console.error(`${location_identifier} // notifyMessageStatus/Error forwarding message to rails app:`, Util.prettifyError(e));
+        });
+    } catch (e){
+        console.log(`${location_identifier} // [error] forwarding statusMessage to rails app: `, Util.prettifyError(e))
+    }
 }
 
 async function notifyMaxQrCodesReached(location_identifier) {
@@ -227,8 +231,8 @@ async function notifyMaxQrCodesReached(location_identifier) {
     await axios.post(`${railsAppBaseUrl()}/new_login`, {
         event_type: 'max_qr_codes_reached',
         location_identifier: location_identifier,
-    }).catch(error => {
-        console.error('notifyMaxQrCodesReached/Error in rails::new_login CODE:', error.code);
+    }).catch(e => {
+        console.error('notifyMaxQrCodesReached/Error in rails::new_login CODE:', Util.prettifyError(e));
     });
 }
 

@@ -1,5 +1,5 @@
 const { getClient } = require('./../clients/ClientsConnected');
-const { extractNumber } = require('../utils/utilities');
+const Util = require('../../util/Util');
 const {getClientInitializing, addClientInitializing} = require('../clients/ClientsInitializingSession');
 const {initializeWhatsAppClient} = require('./whatsappService');
 
@@ -76,7 +76,7 @@ function createChatJSONObject(chats, chats_to_get) {
                     groupChat: chat.isGroup,
                     messages: messages.map(message => {
                         return {
-                            from: extractNumber(message.from),
+                            from: Util.extractNumber(message.from),
                             fromMe: message.fromMe,
                             body: message.body
                         };

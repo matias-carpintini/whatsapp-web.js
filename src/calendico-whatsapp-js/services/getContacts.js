@@ -1,5 +1,4 @@
 const {getChats} = require('./getChats');
-//const { extractNumber } = require('../utils/utilities');
 
 async function getContacts(location_identifier, res) {
     if (!location_identifier) {
