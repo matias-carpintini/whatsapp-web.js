@@ -212,7 +212,6 @@ function forwardMessageToRails(client_phone_number, location_identifier, message
             console.error(`${location_identifier} // forwardMessageToRails/Error forwarding message to rails app:`, Util.prettifyError(e));
         });
     } catch (e){
-        const errorMsg = util.inspect(e, {showHidden: false, depth: null, colors: false})
         console.log(`${location_identifier} // [error] forwarding message to rails app: `, Util.prettifyError(e))
     }
 }
@@ -223,7 +222,6 @@ function notifyMessageStatus(payload) {
             console.error(`${location_identifier} // notifyMessageStatus/Error forwarding message to rails app:`, Util.prettifyError(e));
         });
     } catch (e){
-        const errorMsg = util.inspect(e, {showHidden: false, depth: null, colors: false})
         console.log(`${location_identifier} // [error] forwarding statusMessage to rails app: `, Util.prettifyError(e))
     }
 }
@@ -234,7 +232,6 @@ async function notifyMaxQrCodesReached(location_identifier) {
         event_type: 'max_qr_codes_reached',
         location_identifier: location_identifier,
     }).catch(e => {
-        const errorMsg = util.inspect(e, {showHidden: false, depth: null, colors: false})
         console.error('notifyMaxQrCodesReached/Error in rails::new_login CODE:', Util.prettifyError(e));
     });
 }
