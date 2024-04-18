@@ -18,9 +18,10 @@ class Util {
     }
 
     static prettifyError(obj){
-        return util.inspect(obj, {showHidden: false, depth: null, colors: false})
+        return util.inspect(obj, {showHidden: false, depth: 2, colors: false})
     }
     static extractNumber = (str) => {
+        console.log(`::: extractNumber from: ${str}`)
         let separator = str.includes('-') ? '-' : '@';
         let numberBeforeSeparator = str.split(separator)[0];
         return numberBeforeSeparator;
