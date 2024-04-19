@@ -71,9 +71,9 @@ async function send_message_to_client(
                     { linkPreview: dont_preview_links == null }
                 );
                 if (dont_archive_chat == null) {
+                    console.log(`:::archivingChat with ${receiver_phone}`)
                     await archiveChatAfterDelay(messageObject);
-                } 
-                else {
+                } else {
                     await markChatAsUnreadAfterDelay(messageObject);
                 }
 

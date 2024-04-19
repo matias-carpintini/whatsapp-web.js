@@ -186,6 +186,10 @@ const incrementQrCodeDelivery = (location_identifier) => {
 async function processMessage(client, location_identifier, message) {
     try {
         const client_phone_number = Util.extractNumber(message.from);
+        if (!client_phone_number || !client_phone_number.length || client_phone_number == 'status') {
+            console.log(`ignoring processMessage/CPN: ${client_phone_number}`)
+            return true;
+        }
         const message_body = message.body;
         /* 
         if (client_phone_number != 'status') { // logging chat

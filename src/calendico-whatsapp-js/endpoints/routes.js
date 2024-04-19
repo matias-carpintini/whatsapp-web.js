@@ -10,7 +10,11 @@ const { restartDB, removeTestClient, showClientsDB } = require('../services/db')
 // Endpoint to send a message
 router.post('/send_message', async (req, res) => {
     const { location_identifier, receiver_phone, message, message_id, dont_preview_links, dont_archive_chat } = req.body;
-    console.log(`[route/send_message] locationId ${location_identifier}`, `receiver_phone: ${receiver_phone}`, `message: ${message.substr(0, 30)}...`); 
+    console.log(`[route/send_message] locationId ${location_identifier}`, 
+    `receiver_phone: ${receiver_phone}`, 
+    `dont_archive?: type(${typeof dont_archive_chat}): ${dont_archive_chat}`, 
+    `message: ${message.substr(0, 30)}...`); 
+    
     return await send_message_to_client(location_identifier, res, receiver_phone, message, message_id, dont_preview_links, dont_archive_chat);
 });
 router.get('/', (req, res) => {
