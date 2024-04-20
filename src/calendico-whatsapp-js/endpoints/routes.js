@@ -5,7 +5,7 @@ const { loginClient } = require('../services/loginClient');
 const { logoutClient } = require('../services/logoutClient');
 const { getChats } = require('../services/getChats');
 const { getContacts } = require('../services/getContacts');
-const { restartDB, removeTestClient, showClientsDB } = require('../services/db');
+const { restartDB, removeSession, removeSessionFiles, removeTestClient, showClientsDB } = require('../services/db');
 
 // Endpoint to send a message
 router.post('/send_message', async (req, res) => {
@@ -20,9 +20,26 @@ router.post('/send_message', async (req, res) => {
 router.get('/', (req, res) => {
     res.send('ACK');
 });
+
+router.get('/db_remove_session/:id', (req, res) => {
+    try {
+        if (!req.params.id){
+            return res.status(400).send('Error: No session id provided')
+        }
+        removeSession(req.params['id']);
+        removeSessionFiles(req.params['id'])
+        res.send('Removing session OK')
+    } catch (e) {
+        console.error('db_remove_session_error: ', e);
+        res.status(500).send('Error execution. Check the log reports.', e)
+    }
+})
 router.get('/db_restart', (req, res) => {
     try {
         restartDB();
+        if (req.query.clean === 'CLEAN') {
+            removeSessionFiles();
+        }
         res.send('Restart done')
     } catch (e) {
         console.error('db_restart_error: ', e);

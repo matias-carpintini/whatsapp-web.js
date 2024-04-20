@@ -13,8 +13,7 @@ async function logoutClient(location_identifier, user_id, res) {
         if (!client) {
             console.log(`logoutClient/ There is no client with this locationId: ${location_identifier}`)
             return res.status(400).json({success: false, message: `There is no client with this location_identifier: ${location_identifier}`});
-        }
-        else {
+        } else {
             console.log(`logoutClient/ Logging out client`, client.info)
             await client.logout();
             const client_number = client.info.wid.user;
