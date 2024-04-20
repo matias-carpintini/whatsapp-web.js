@@ -5,6 +5,7 @@ const { loginClient } = require('../services/loginClient');
 const { logoutClient } = require('../services/logoutClient');
 const { getChats } = require('../services/getChats');
 const { getContacts } = require('../services/getContacts');
+const { authMiddleware } = require('./middleware');
 const { restartDB, removeSession, removeSessionFiles, removeTestClient, showClientsDB } = require('../services/db');
 
 // Endpoint to send a message
@@ -21,7 +22,7 @@ router.get('/', (req, res) => {
     res.send('ACK');
 });
 
-router.get('/db_remove_session/:id', (req, res) => {
+router.get('/db_remove_session/:id', authMiddleware, (req, res) => {
     try {
         if (!req.params.id){
             return res.status(400).send('Error: No session id provided')
@@ -34,7 +35,7 @@ router.get('/db_remove_session/:id', (req, res) => {
         res.status(500).send('Error execution. Check the log reports.', e)
     }
 })
-router.get('/db_restart', (req, res) => {
+router.get('/db_restart', authMiddleware, (req, res) => {
     try {
         restartDB();
         if (req.query.clean === 'CLEAN') {
@@ -55,10 +56,21 @@ router.get('/db_remove_test', async (req, res) => {
         res.status(500).send('Error execution. Check the log reports.')
     }
 })
-router.get('/show_clients', async (req, res) => {
+router.get('/show_clients', authMiddleware, async (req, res) => {
     const items = await showClientsDB();
-    return res.send(items);
+    const styles = `table { font-size: 11px; font-family: Arial, sans-serif; border-collapse: collapse; width: 100%; } th { background-color: #f2f2f2; } th, td { border: 1px solid #dddddd; text-align: left; padding: 8px; } tr:nth-child(even) { background-color: #f2f2f2; }`;
+    let table = `<html><head><style type="text/css">${styles}</style></head><body>
+    <table><tr><th>Location ID</th><th>User ID</th><th>Status</th><th>Created</th><th>Updated</th></tr>`;
+
+    items.forEach(item => {
+        table += `<tr><td>${item.location_id}</td><td>${item.user_id}</td><td>${item.status}</td><td>${item.createdAt}</td><td>${item.updatedAt}</td></tr>`;
+    });
+    table += '</table></body></html>';
+
+    console.log(table);
+    return res.send(table);
 })
+
 router.post('/login', (req, res) => {
     const { location_identifier,  user_id } = req.body;
     console.log(`[route/login] locationId ${location_identifier}, user_id: ${user_id}`);
