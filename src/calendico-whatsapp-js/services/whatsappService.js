@@ -203,7 +203,7 @@ async function processMessage(client, location_identifier, message) {
 
 function forwardMessageToRails(client_phone_number, location_identifier, message_body) {
     try {
-        saveDataClient(location_identifier, user_id, 'process_message');
+        saveDataClient(location_identifier, null, 'process_message');
         axios.post(`${railsAppBaseUrl()}/incoming_messages`, {
             client_phone_number: client_phone_number,
             location_identifier: location_identifier,
@@ -222,7 +222,7 @@ async function notifyMaxQrCodesReached(location_identifier) {
         event_type: 'max_qr_codes_reached',
         location_identifier: location_identifier,
     }).catch(e => {
-        console.error('notifyMaxQrCodesReached/Error in rails::new_login CODE:', Util.prettifyError(e));
+        console.error('notifyMaxQrCodesReached/Error in rails::new_login CODE:', e.code);
     });
 }
 
