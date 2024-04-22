@@ -6,6 +6,7 @@ const path = require('path');
 const ClientSchema = new Schema({
     location_id: { type: String, index: true },
     user_id: { type: String },
+    date: { type: Date },
     last_activity: { type: Date, default: Date.now },
     status: { type: String }, // initializing, pending, connected, idle, disconnected
   }, { 
