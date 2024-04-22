@@ -1,20 +1,10 @@
 const { store, remove } = require('../services/client');
-// Shared clients object
 const clients = {};
 
-// Functions to manipulate clients
+// memory
 const getClients = () => clients;
-
 const addClient = (location_identifier, clientInstance) => {
     clients[location_identifier] = clientInstance; 
-};
-
-const storeDataClient = async (location_identifier, user_id) => {
-    await store(location_identifier, user_id);
-};
-const removeDataClient = async (location_identifier, _user_id) => {
-    console.log(`::: ${location_identifier} removed from database`);
-    await remove(location_identifier);
 };
 const getClient = (location_identifier) => {
     if (typeof clients[location_identifier] === undefined) {
@@ -22,7 +12,6 @@ const getClient = (location_identifier) => {
     }
     return clients[location_identifier];
 };
-
 const removeClient = (location_identifier) => {
     if (clients[location_identifier]) {
         delete clients[location_identifier];
@@ -32,4 +21,13 @@ const removeClient = (location_identifier) => {
     }
 };
 
-module.exports = { getClients, addClient, removeClient, getClient, storeDataClient, removeDataClient };
+// DB
+const saveDataClient = async (location_identifier, user_id, status='initializing') => {
+    await store(location_identifier, user_id, status);
+};
+const removeDataClient = async (location_identifier, _user_id) => {
+    await remove(location_identifier);
+    console.log(`::: ${location_identifier} removed from database`);
+};
+
+module.exports = { getClients, addClient, removeClient, getClient, saveDataClient, removeDataClient };

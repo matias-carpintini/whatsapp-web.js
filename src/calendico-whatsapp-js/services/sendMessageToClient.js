@@ -1,5 +1,6 @@
 const { initializeWhatsAppClient } = require("./whatsappService");
-const { getClient } = require("./../clients/ClientsConnected");
+const { getClient, saveDataClient } = require("./../clients/ClientsConnected");
+
 const {
     addClientInitializing,
     getClientInitializing,
@@ -25,7 +26,8 @@ async function send_message_to_client(
                         "Client is already initializing. Please try again in a few seconds.",
                 });
             } else {
-                console.log(`Client [${location_identifier}] has no session, initializing...`);
+                console.log(`Client [${location_identifier}] has no client alive, initializing with session files?...`);
+                // supose to reconnect the session using the session files.
                 await initializeWhatsAppClient(
                     location_identifier,
                     "automatic_reconnect"
@@ -50,6 +52,7 @@ async function send_message_to_client(
                 });
         });
         console.log(`${location_identifier} => send_message_to_client/client.getState(): `, client_state);
+        saveDataClient(location_identifier, null, `state: ${client_state}`);
         if (
             client_state === null ||
             client_state === "CONFLICT" ||
