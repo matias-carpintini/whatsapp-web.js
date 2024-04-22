@@ -63,11 +63,9 @@ router.get('/show_clients', authMiddleware, async (req, res) => {
     <table><tr><th>Location ID</th><th>User ID</th><th>Status</th><th>Created</th><th>Updated</th></tr>`;
 
     items.forEach(item => {
-        table += `<tr><td>${item.location_id}</td><td>${item.user_id}</td><td>${item.status}</td><td>${item.createdAt}</td><td>${item.updatedAt}</td></tr>`;
+        table += `<tr><td>${item.location_id}</td><td>${item.user_id}</td><td>${item.status}</td><td>${item.createdAt || item.date}</td><td>${item.updatedAt}</td></tr>`;
     });
     table += '</table></body></html>';
-
-    console.log(table);
     return res.send(table);
 })
 
