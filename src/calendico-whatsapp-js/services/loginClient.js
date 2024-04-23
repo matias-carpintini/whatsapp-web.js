@@ -1,8 +1,8 @@
 const { initializeWhatsAppClient } = require('./whatsappService');
 const { getClient, removeClient, removeDataClient, saveDataClient } = require('./../clients/ClientsConnected');
 
-function loginClient(location_identifier, user_id, res) {
-    console.log(`loginClient/ Starting login process for ${location_identifier} by user_id: ${user_id}`);
+function loginClient(location_identifier, user_id, slug, res) {
+    console.log(`loginClient/ Starting login process for ${location_identifier} by user_id: ${user_id} and slug: ${slug}`);
     if (!location_identifier) {
         console.log(`loginClient/noLocationID error`);
         return res.status(400).json({success: false, message: 'The location identifier is required'});
@@ -12,11 +12,11 @@ function loginClient(location_identifier, user_id, res) {
         const client = getClient(location_identifier);
         if (client === undefined) {
             console.log('loginClient/ Creating client...');
-            initializeWhatsAppClient(location_identifier, user_id);
+            initializeWhatsAppClient(location_identifier, user_id, slug);
         } else {
             try {
                 client.initialize();
-                saveDataClient(location_identifier, user_id, 'initializing')
+                saveDataClient(location_identifier, user_id, slug, 'initializing')
                 console.log(`Initialization started for locationId: ${location_identifier}`);
             } catch (error) {
                 console.error('loginClient/client.initialize catch/ Error initializing client:', error);

@@ -36,7 +36,7 @@ async function getChats(location_identifier, chats_to_get, res, return_raw_chats
             const chats = await client.getChats().catch(async (error) => {
                 console.error('getChats/client/catch/ Error getting chats:', error);
                 addClientInitializing(location_identifier, client);
-                await initializeWhatsAppClient(location_identifier);
+                await initializeWhatsAppClient(location_identifier, "automatic_reconnect");
                 if (return_raw_chats) {
                     return false
                 } else {

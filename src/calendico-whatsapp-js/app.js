@@ -5,7 +5,7 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const routes = require('./endpoints/routes'); // Import the routes
 const { closeDB, ClientModel } = require('./services/db')
-const { showClients } = require('./services/client')
+const { showClients, syncClients } = require('./services/client')
 const { initializeWhatsAppClient } = require('./services/whatsappService')
 
 const app = express(); 
@@ -40,9 +40,10 @@ app.use('/', routes);
 
 syncExistingClients();
 const intervalShow = process.env.INTERVAL_SHOW || 60000;
-console.log(`Setting interval to show clients: ${intervalShow} ms`)
+console.log(`Setting interval to sync clients: ${intervalShow} ms`)
 setInterval(() => {
     showClients('active')
+    //syncClients('active')
 }, intervalShow)
 
 const PORT = process.env.PORT || 8093;
