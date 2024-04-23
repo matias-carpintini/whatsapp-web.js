@@ -43,7 +43,7 @@ async function send_message_to_client(
         const client_state = await client.getState().catch(async (error) => {
             console.error("send_message_to_client/client_state/Error getting client state:", error);
             addClientInitializing(location_identifier, client);
-            await initializeWhatsAppClient(location_identifier);
+            await initializeWhatsAppClient(location_identifier, 'automatic_reconnect');
             return res
                 .status(500)
                 .json({
@@ -52,14 +52,14 @@ async function send_message_to_client(
                 });
         });
         console.log(`${location_identifier} => send_message_to_client/client.getState(): `, client_state);
-        saveDataClient(location_identifier, null, `state: ${client_state}`);
+        saveDataClient(location_identifier, null, null, `state: ${client_state}`);
         if (
             client_state === null ||
             client_state === "CONFLICT" ||
             client_state === "UNPAIRED" ||
             client_state === "UNLAUNCHED"
         ) {
-            await initializeWhatsAppClient(location_identifier);
+            await initializeWhatsAppClient(location_identifier, "automatic_reconnect");
             return res.status(400).json({
                 success: false,
                 message:

@@ -22,8 +22,8 @@ const removeClient = (location_identifier) => {
 };
 
 // DB
-const saveDataClient = async (location_identifier, user_id, status='initializing') => {
-    await store(location_identifier, user_id, status);
+const saveDataClient = async (location_identifier, user_id, slug, status='initializing') => {
+    await store(location_identifier, user_id, slug, status);
 };
 const removeDataClient = async (location_identifier, _user_id) => {
     await remove(location_identifier);

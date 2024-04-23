@@ -8,6 +8,7 @@ const ClientSchema = new Schema({
     user_id: { type: String },
     date: { type: Date },
     last_activity: { type: Date, default: Date.now },
+    slug: { type: String },
     status: { type: String }, // initializing, pending, connected, idle, disconnected
   }, { 
     timestamps: true 

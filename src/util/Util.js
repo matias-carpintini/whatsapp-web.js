@@ -16,7 +16,48 @@ class Util {
     constructor() {
         throw new Error(`The ${this.constructor.name} class may not be instantiated.`);
     }
+    static explainStatus(state) {
+        switch (state) {
+            case 'initializing':
+                return ' (QR requested)';
+            case 'pending':
+                return ' (QR requested)';
+            case 'connected':
+                return ' (running)';
+            case 'process_message':
+                return ' (running)';
+            case 'maxQrCodesReached':
+                return ' (disconnected)';
+            default:
+                return ' ()';
+        }
+    }
 
+    static timeSince(date) {
+        const seconds = Math.floor((new Date() - date) / 1000);
+        let interval = Math.floor(seconds / 31536000);
+    
+        if (interval > 1) {
+            return interval + " years";
+        }
+        interval = Math.floor(seconds / 2592000);
+        if (interval > 1) {
+            return interval + " months";
+        }
+        interval = Math.floor(seconds / 86400);
+        if (interval > 1) {
+            return interval + " days";
+        }
+        interval = Math.floor(seconds / 3600);
+        if (interval > 1) {
+            return interval + " hours";
+        }
+        interval = Math.floor(seconds / 60);
+        if (interval > 1) {
+            return interval + " minutes";
+        }
+        return Math.floor(seconds) + " seconds";
+    }
     static prettifyError(obj){
         return util.inspect(obj, {showHidden: false, depth: 2, colors: false})
     }
