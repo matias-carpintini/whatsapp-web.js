@@ -5,7 +5,7 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const routes = require('./endpoints/routes'); // Import the routes
 const { closeDB, ClientModel } = require('./services/db')
-const { showClients, syncClients } = require('./services/client')
+const { showClients, checkIdleClients } = require('./services/client')
 const { initializeWhatsAppClient } = require('./services/whatsappService')
 
 const app = express(); 
@@ -18,8 +18,10 @@ function syncExistingClients() {
         console.log(`[database connected]... => ${dbUrl}`);
         const items = await ClientModel.find()
         items.map(async (i, index) => {
-                console.log(`[sync] found client: ${i.location_id} / ${i.user_id}`);
-                await initializeWhatsAppClient(i.location_id, i.user_id);
+                console.log(`[sync] found client: ${i.location_id} / ${i.user_id} with status: ${i.status}`);
+                if (i.status == 'initializing' || i.status == 'pending' || i.status == 'connected' || i.status == 'qr_code_ready'){
+                    await initializeWhatsAppClient(i.location_id, i.user_id);
+                }
             })
         })
 }
@@ -41,9 +43,8 @@ app.use('/', routes);
 syncExistingClients();
 const intervalShow = process.env.INTERVAL_SHOW || 60000;
 console.log(`Setting interval to sync clients: ${intervalShow} ms`)
-setInterval(() => {
-    showClients('active')
-    //syncClients('active')
+setInterval(() => { 
+    checkIdleClients()
 }, intervalShow)
 
 const PORT = process.env.PORT || 8093;

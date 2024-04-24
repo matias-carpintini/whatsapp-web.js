@@ -1,4 +1,3 @@
-const { store, remove } = require('../services/client');
 const clients = {};
 
 // memory
@@ -21,13 +20,4 @@ const removeClient = (location_identifier) => {
     }
 };
 
-// DB
-const saveDataClient = async (location_identifier, user_id, slug, status='initializing') => {
-    await store(location_identifier, user_id, slug, status);
-};
-const removeDataClient = async (location_identifier, _user_id) => {
-    await remove(location_identifier);
-    console.log(`::: ${location_identifier} removed from database`);
-};
-
-module.exports = { getClients, addClient, removeClient, getClient, saveDataClient, removeDataClient };
+module.exports = { getClients, addClient, removeClient, getClient };

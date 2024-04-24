@@ -1,5 +1,6 @@
 const { initializeWhatsAppClient } = require('./whatsappService');
-const { getClient, removeClient, removeDataClient, saveDataClient } = require('./../clients/ClientsConnected');
+const { getClient, removeClient } = require('./../clients/ClientsConnected');
+const { saveDataClient, removeDataClient } = require('./../services/client');
 
 function loginClient(location_identifier, user_id, slug, res) {
     console.log(`loginClient/ Starting login process for ${location_identifier} by user_id: ${user_id} and slug: ${slug}`);

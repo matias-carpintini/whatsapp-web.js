@@ -1,5 +1,6 @@
 const { initializeWhatsAppClient } = require("./whatsappService");
-const { getClient, saveDataClient } = require("./../clients/ClientsConnected");
+const { getClient } = require("./../clients/ClientsConnected");
+const { saveDataClient } = require("./../services/client");
 
 const {
     addClientInitializing,

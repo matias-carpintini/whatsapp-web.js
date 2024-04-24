@@ -61,10 +61,10 @@ router.get('/show_clients', authMiddleware, async (req, res) => {
     const items = await showClientsDB();
     const styles = `table { font-size: 11px; font-family: Arial, sans-serif; border-collapse: collapse; width: 100%; } th { background-color: #f2f2f2; } th, td { border: 1px solid #dddddd; text-align: left; padding: 8px; } tr:nth-child(even) { background-color: #f2f2f2; }`;
     let table = `<html><head><style type="text/css">${styles}</style></head><body>
-    <table><tr><th>Location Slug</th><th>AD JID</th><th>User ID</th><th>Status</th><th>Created</th><th>Updated</th></tr>`;
+    <table><tr><th>Location Slug</th><th>AD_JID</th><th>User ID</th><th>Status</th><th>Created</th><th>Updated</th><th>PING_IDLE</th></tr>`;
 
     items.forEach(item => {
-        table += `<tr><td>${item.slug}</td><td>${item.location_id}</td><td>${item.user_id}</td><td>${item.status} ${Util.explainStatus(item.status)}</td><td>${item.createdAt ? Util.timeSince(new Date(item.createdAt)) + ' ago' : Util.timeSince(new Date(item.date)) + ' ago'}</td><td>${item.updatedAt ? Util.timeSince(new Date(item.updatedAt)) + ' ago' : ''}</td></tr>`;    });
+        table += `<tr><td>${item.slug}</td><td>${item.location_id}</td><td>${item.user_id}</td><td>${item.status} ${Util.explainStatus(item.status)}</td><td>${item.createdAt ? Util.timeSince(new Date(item.createdAt)) + ' ago' : Util.timeSince(new Date(item.date)) + ' ago'}</td><td>${item.updatedAt ? Util.timeSince(new Date(item.updatedAt)) + ' ago' : ''}</td><td>${item.idleCounter || 0}</td></tr>`;    });
     table += '</table></body></html>';
     return res.send(table);
 })

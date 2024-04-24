@@ -3,7 +3,8 @@ const { Client, LocalAuth } = require('./../../../index.js');
 const { addClientInitializing, removeClientInitializing } = require('../clients/ClientsInitializingSession');
 const { railsAppBaseUrl } = require('./../config/railsAppConfig');
 const { addQrCodeDelivery, resetQrCodeDelivery, getQrCodeDelivery, incrementQrCodeDeliveryFor, maxQrCodeDeliveriesReached } = require('../clients/qrCodeDeliveries');
-const { addClient, removeClient, removeDataClient, saveDataClient } = require('./../clients/ClientsConnected'); 
+const { addClient, removeClient } = require('./../clients/ClientsConnected'); 
+const { saveDataClient, removeDataClient } = require('./../services/client'); 
 const qrcodeTerminal = require('qrcode-terminal');
 const axios = require('axios');
 
@@ -31,7 +32,7 @@ const initializeWhatsAppClient = async (location_identifier, user_id, slug = nul
                 dataPath: process.env.AUTH_PATH || './.wwebjs_auth'
             }),
             puppeteer: puppeteerOptions,
-            authTimeoutMs: 30000,
+            authTimeoutMs: 0,
             location_identifier: location_identifier
         });
         setupClientEventListeners(client, location_identifier, user_id);
@@ -49,11 +50,19 @@ const setupClientEventListeners = (client, location_identifier, user_id) => {
         incrementQrCodeDelivery(location_identifier);
         if (maxQrCodeDeliveriesReached(location_identifier)) {
             console.log(`${location_identifier} :::client.on.qr/Max QR code deliveries reached`);
+            saveDataClient(location_identifier, user_id, null, 'disconnected'); 
             resetQrCodeDelivery(location_identifier);
             removeClientInitializing(location_identifier);
+            try {
             await notifyMaxQrCodesReached(location_identifier);
-            client.destroy();
-            removeClient(location_identifier); 
+            } catch (e){}
+            try {
+                client.logout();
+                client.destroy();
+                removeClient(location_identifier); 
+            } catch (e){
+                console.error(`${location_identifier} :::client.on.qr/Error logging out client:`, Util.prettifyError(e));
+            }
             return;
         }
         console.log(`Sending to rails: ${location_identifier}/setup/client.on.qr, user_id: ${user_id}`);
