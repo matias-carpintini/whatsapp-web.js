@@ -180,7 +180,7 @@ class Client extends EventEmitter {
                     * @event Client#qr
                     * @param {string} qr QR Code
                     */
-                    console.log(`:${this.location_identifier} =>  qr Changed`);
+                    console.log(`:${this.location_identifier} => qr Changed`);
                     this.emit(Events.QR_RECEIVED, qr);
                     if (this.options.qrMaxRetries > 0) {
                         qrRetries++;

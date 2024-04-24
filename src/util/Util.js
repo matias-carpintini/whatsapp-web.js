@@ -17,14 +17,15 @@ class Util {
         throw new Error(`The ${this.constructor.name} class may not be instantiated.`);
     }
     static explainStatus(state) {
-        switch (state) {
+        const status = state && state.toLowerCase();
+        switch (status) {
             case 'pending':
                 return ' (QR requested)';
             case 'connected':
                 return ' (running)';
             case 'process_message':
                 return ' (running)';
-            case 'maxQrCodesReached':
+            case 'maxqrcodesreached':
                 return ' (disconnected)';
             default:
                 return ' ()';
