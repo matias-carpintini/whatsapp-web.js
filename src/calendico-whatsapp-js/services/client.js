@@ -47,7 +47,7 @@ async function checkIdleClients() {
                             const pupState = await client.getState().catch(async (error) => {
                                 console.log(`${i.location_id} => Error getting client state:`, error);
                             });
-                            if (i.status == 'initializing' || i.status == 'qr_code_ready') {
+                            if (i.status == 'initializing' || i.status == 'qr_code_ready' || i.status == 'authenticated') {
                                 if (i.idleCounter && i.idleCounter > 10){
                                     i.updateOne({status: 'idle'})
                                     console.log(`Location [${i.location_id}] now is idle`)
