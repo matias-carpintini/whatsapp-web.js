@@ -43,34 +43,35 @@ async function checkIdleClients() {
                             console.error(`${i.location_id} // setup/client.on.disconnected/Error sending ready event to rails app:`, e.code);
                         });
                     } else {
-                        if (i.status == 'disconnected') return;
-                        const pupState = await client.getState().catch(async (error) => {
-                            console.log(`${i.location_id} => Error getting client state:`, error);
-                        });
-                        if (i.status == 'initializing' || i.status == 'qr_code_ready') {
-                            if (i.idleCounter && i.idleCounter > 10){
-                                i.updateOne({status: 'idle'})
-                                console.log(`Location [${i.location_id}] now is idle`)
-                                
-                                client.logout().then(() => {
-                                    console.log(`${i.location_id} => Client logged out`)
+                        if (i.status != 'disconnected'){
+                            const pupState = await client.getState().catch(async (error) => {
+                                console.log(`${i.location_id} => Error getting client state:`, error);
+                            });
+                            if (i.status == 'initializing' || i.status == 'qr_code_ready') {
+                                if (i.idleCounter && i.idleCounter > 10){
+                                    i.updateOne({status: 'idle'})
+                                    console.log(`Location [${i.location_id}] now is idle`)
+                                    
+                                    client.logout().then(() => {
+                                        console.log(`${i.location_id} => Client logged out`)
 
-                                    axios.post(`${railsAppBaseUrl()}/new_login`, {
-                                        event_type: 'logout',
-                                        user_id: 'automatic_reconnect',
-                                        phone: '000',
-                                        location_identifier: i.location_id,
+                                        axios.post(`${railsAppBaseUrl()}/new_login`, {
+                                            event_type: 'logout',
+                                            user_id: 'automatic_reconnect',
+                                            phone: '000',
+                                            location_identifier: i.location_id,
+                                        }).catch(e => {
+                                            console.error(`${i.location_id} // setup/client.on.disconnected/Error sending ready event to rails app:`, e.code);
+                                        });
+
                                     }).catch(e => {
-                                        console.error(`${i.location_id} // setup/client.on.disconnected/Error sending ready event to rails app:`, e.code);
-                                    });
-
-                                }).catch(e => {
-                                    console.error(`${i.location_id} => Error logging out:`, e)
+                                        console.error(`${i.location_id} => Error logging out:`, e)
+                                    }
+                                    );
+                                } else {
+                                    const n = i.idleCounter ? i.idleCounter + 1 : 1;
+                                    i.updateOne({ idleCounter: n })
                                 }
-                                );
-                            } else {
-                                const n = i.idleCounter ? i.idleCounter + 1 : 1;
-                                i.updateOne({ idleCounter: n })
                             }
                         }
                     }
