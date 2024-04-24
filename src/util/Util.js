@@ -18,8 +18,6 @@ class Util {
     }
     static explainStatus(state) {
         switch (state) {
-            case 'initializing':
-                return ' (QR requested)';
             case 'pending':
                 return ' (QR requested)';
             case 'connected':

@@ -93,13 +93,11 @@ class Client extends EventEmitter {
      * @property {boolean} reinject is this a reinject?
      */
     async inject(reinject = false) {
-        console.log(`:${this.location_identifier} =>  inject/window.Debug.VERSION`)
         try {
             await this.pupPage.waitForFunction('window.Debug?.VERSION != undefined', {timeout: this.options.authTimeoutMs});
         } catch (e){
             console.log(`:${this.location_identifier} => [ERROR] inject window.Debug.VERSION error detail on line 98`, Util.prettifyError(e))
         }
-        console.log(`:${this.location_identifier} =>  inject getWebVERSION`)
         let version = null;
         try {
             version = await this.getWWebVersion();
@@ -107,49 +105,48 @@ class Client extends EventEmitter {
             version = DEFAULT_VERSION;
             console.log(`:${this.location_identifier} => inject getWebVERSION error, using default version`, Util.prettifyError(e)) 
         }
-        console.log(`:${this.location_identifier} =>  returned version`, version)
+        console.log(`:${this.location_identifier} => returned version`, version)
         const isCometOrAbove = parseInt(version.split('.')?.[1]) >= 3000;
-        console.log(`:${this.location_identifier} =>  inject: `,isCometOrAbove);
-            try {
-                if (isCometOrAbove) {
-                    await this.pupPage.evaluate(ExposeAuthStore);
+        console.log(`:${this.location_identifier} => isCometOrAbove?: `,isCometOrAbove);
+        try {
+            if (isCometOrAbove) {
+                await this.pupPage.evaluate(ExposeAuthStore);
+            } else {
+                await this.pupPage.evaluate(ExposeLegacyAuthStore, moduleRaid.toString());
+            }
+        } catch (e){
+            console.error('issue with ExposeAuthStore', Util.prettifyError(e))
+        }
+        let needAuthentication = false;
+        try {
+            needAuthentication = await this.pupPage.evaluate(async () => {
+                console.log(`:${this.location_identifier} => needAuthentication running`)
+                let state = window.AuthStore.AppState.state;
+                console.log(`:${this.location_identifier} =>  needAuthentication: `, state)
+                if (state === 'OPENING' || state === 'UNLAUNCHED' || state === 'PAIRING') {
+                    console.log(`:${this.location_identifier} =>  needAuthentication (Opening/Pairing/Unlaunched) `, state)
+                    // wait till state changes
+                    await new Promise(r => {
+                        console.log(`:${this.location_identifier} =>  promise with state Opening/Pairing/Unlaunched`)
+                        window.AuthStore.AppState.on('change:state', function waitTillInit(_AppState, state) {
+                            console.log(`:${this.location_identifier} =>  waitTillInit`, state)
+                            if (state !== 'OPENING' && state !== 'UNLAUNCHED' && state !== 'PAIRING') {
+                                window.AuthStore.AppState.off('change:state', waitTillInit);
+                                r();
+                            } 
+                        });
+                    }); 
                 } else {
-                    await this.pupPage.evaluate(ExposeLegacyAuthStore, moduleRaid.toString());
+                    console.log(`:${this.location_identifier} =>  needAuthentication (otherState) `, state)
                 }
-            } catch (e){
-                console.error('issue with ExposeAuthStore', Util.prettifyError(e))
-            }
-            console.log(`:${this.location_identifier} =>  needAuth definition: `)
-            let needAuthentication = false;
-            try {
-                needAuthentication = await this.pupPage.evaluate(async () => {
-                    console.log(`:${this.location_identifier} => needAuthentication running`)
-                    let state = window.AuthStore.AppState.state;
-                    console.log(`:${this.location_identifier} =>  needAuthentication: `, state)
-                    if (state === 'OPENING' || state === 'UNLAUNCHED' || state === 'PAIRING') {
-                        console.log(`:${this.location_identifier} =>  needAuthentication (Opening/Pairing/Unlaunched) `, state)
-                        // wait till state changes
-                        await new Promise(r => {
-                            console.log(`:${this.location_identifier} =>  promise with state Opening/Pairing/Unlaunched`)
-                            window.AuthStore.AppState.on('change:state', function waitTillInit(_AppState, state) {
-                                console.log(`:${this.location_identifier} =>  waitTillInit`, state)
-                                if (state !== 'OPENING' && state !== 'UNLAUNCHED' && state !== 'PAIRING') {
-                                    window.AuthStore.AppState.off('change:state', waitTillInit);
-                                    r();
-                                } 
-                            });
-                        }); 
-                    } else {
-                        console.log(`:${this.location_identifier} =>  needAuthentication (otherState) `, state)
-                    }
-                    state = window.AuthStore.AppState.state;
-                    return state == 'UNPAIRED' || state == 'UNPAIRED_IDLE';
-                });
-            } catch (e){
-                console.error(e)
-            }
+                state = window.AuthStore.AppState.state;
+                return state == 'UNPAIRED' || state == 'UNPAIRED_IDLE';
+            });
+        } catch (e){
+            console.error(e)
+        }
         
-        console.log(`:${this.location_identifier} =>  if needAuth? `)
+        console.log(`:${this.location_identifier} => if needAuth? `)
 
         if (needAuthentication) {
             console.log(`:${this.location_identifier} =>  if (needAuth) true`)
@@ -222,7 +219,7 @@ class Client extends EventEmitter {
             });
 
             await this.pupPage.exposeFunction('onAppStateHasSyncedEvent', async () => {
-                console.log(`:${this.location_identifier} =>  onAppStateHasSyncedEvent`);
+                console.log(`:${this.location_identifier} => onAppStateHasSyncedEvent`);
 
                 const authEventPayload = await this.authStrategy.getAuthEventPayload();
                 /**
@@ -239,7 +236,7 @@ class Client extends EventEmitter {
                     if (this.options.webVersionCache.type === 'local' && this.currentIndexHtml) {
                         const { type: webCacheType, ...webCacheOptions } = this.options.webVersionCache;
                         const webCache = WebCacheFactory.createWebCache(webCacheType, webCacheOptions);
-                        console.log(`:${this.location_identifier} =>  persist Cache`);
+                        console.log(`:${this.location_identifier} => persist Cache`);
                         await webCache.persist(this.currentIndexHtml, version);
                     }
 
@@ -251,9 +248,8 @@ class Client extends EventEmitter {
                         await new Promise(r => setTimeout(r, 2000)); 
                         await this.pupPage.evaluate(ExposeLegacyStore);
                     }
-                    console.log(`:${this.location_identifier} =>  wait for window.Store`);
+                    //console.log(`:${this.location_identifier} =>  wait for window.Store`);
 
-                    // Check window.Store Injection
                     await this.pupPage.waitForFunction('window.Store != undefined');
             
                     /**
@@ -839,7 +835,7 @@ class Client extends EventEmitter {
      * @returns {Promise<string>}
      */
     async getWWebVersion() {
-        console.log(`:${this.location_identifier} =>  getWWebVersion`)
+        //console.log(`:${this.location_identifier} =>  getWWebVersion`)
         try {
             return await this.pupPage.evaluate(() => {
                 console.log(`:${this.location_identifier} =>  returning version `, window.Debug.VERSION)

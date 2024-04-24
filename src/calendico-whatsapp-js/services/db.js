@@ -7,6 +7,7 @@ const ClientSchema = new Schema({
     location_id: { type: String, index: true },
     user_id: { type: String },
     date: { type: Date },
+    idleCounter: {type: Number, default: 0},
     last_activity: { type: Date, default: Date.now },
     slug: { type: String },
     status: { type: String }, // initializing, pending, connected, idle, disconnected
