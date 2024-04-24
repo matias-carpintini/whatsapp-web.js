@@ -30,6 +30,7 @@ async function checkIdleClients() {
         return ClientModel.find().then((items) => {
             if (items.length) {
                 items.map(async (i) => {
+                    console.log(`[checking ... ${i.location_id}] => ${i.status}`)
                     const client = getClient(i.location_id);
                     if (!client){
                         i.updateOne({status: 'disconnected'});
@@ -46,7 +47,6 @@ async function checkIdleClients() {
                         const pupState = await client.getState().catch(async (error) => {
                             console.log(`${i.location_id} => Error getting client state:`, error);
                         });
-                        console.log(items.map((i) => `Location [${i.location_id}] is ${i.status} [getState: ${pupState}]`))
                         if (i.status == 'initializing' || i.status == 'qr_code_ready') {
                             if (i.idleCounter && i.idleCounter > 10){
                                 i.updateOne({status: 'idle'})
