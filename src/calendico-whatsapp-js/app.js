@@ -19,7 +19,7 @@ function syncExistingClients() {
         const items = await ClientModel.find()
         items.map(async (i, index) => {
                 console.log(`[sync] found client: ${i.location_id} / ${i.user_id} with status: ${i.status}`);
-                if (i.status != 'disconnected' && i.status != 'idle'){
+                if (i.status != 'disconnected' && i.status != 'idle' && i.status != 'maxQrCodesReached'){
                     await initializeWhatsAppClient(i.location_id, i.user_id);
                 }
             })
