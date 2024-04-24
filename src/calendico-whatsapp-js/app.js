@@ -41,7 +41,7 @@ app.use(bodyParser.json());
 app.use('/', routes);
 
 syncExistingClients();
-const intervalShow = process.env.INTERVAL_SHOW || 60000;
+const intervalShow = process.env.INTERVAL_SHOW || 300000;
 console.log(`Setting interval to sync clients: ${intervalShow} ms`)
 setInterval(() => { 
     checkIdleClients()
