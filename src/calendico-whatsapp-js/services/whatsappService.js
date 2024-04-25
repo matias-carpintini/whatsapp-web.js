@@ -26,6 +26,7 @@ const initializeWhatsAppClient = async (location_identifier, user_id, slug = nul
             console.log(`${location_identifier} Using Chromium from ${process.env.CHROMIUM_EXECUTABLE_PATH}`)
             puppeteerOptions.executablePath = process.env.CHROMIUM_EXECUTABLE_PATH;
         }
+        console.log("executablePath: ", puppeteerOptions.executablePath)
         const client = new Client({
             authStrategy: new LocalAuth({
                 clientId: location_identifier,
@@ -179,7 +180,7 @@ const setupClientEventListeners = (client, location_identifier, user_id) => {
     })
     client.on('loading_screen', (percent, message) => {
         saveDataClient(location_identifier, user_id, null, 'loading_screen');
-        console.log(`${location_identifier} // client.on.loading_screen/LOADING SCREEN: `, percent, message);
+        console.log(`${location_identifier} // client.on.loading_screen`, percent, message);
     });
 };
 

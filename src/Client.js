@@ -565,7 +565,9 @@ class Client extends EventEmitter {
             });
 
             await this.pupPage.exposeFunction('onChatUnreadCountEvent', async (data) =>{
+                console.log(':::getChat', data.id)
                 const chat = await this.getChatById(data.id);
+                console.log(':::getChat end ',data.id)
                 
                 /**
                  * Emitted when the chat unread count changes
