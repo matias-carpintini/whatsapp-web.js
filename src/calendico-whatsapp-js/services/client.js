@@ -122,7 +122,7 @@ function showClients(status = 'active') {
     })
     return items;
 }
-async function store(location_id, user_id, slug, status='initializing') {
+async function store(location_id, user_id, slug, status='initializing', avoidUpdate) {
     let doc = { location_id, status, last_activity: Date.now() };
     if (user_id) doc.user_id = user_id; // optional
     if (slug) doc.slug = slug; // optional
@@ -130,8 +130,16 @@ async function store(location_id, user_id, slug, status='initializing') {
         doc.idleCounter = 0;
     }
     let item = await ClientModel.findOne({location_id});
-    console.log(`::: updating: ${location_id} -> ${status}`)
-    return (item) ? await item.updateOne(doc) : await ClientModel.create(doc);
+    if (item) {
+        await item.updateOne(doc)
+        console.log(`::: updating: ${location_id} -> ${status}`)
+    } else {
+        if (avoidUpdate) {
+            await ClientModel.create(doc);
+            console.log(`::: creating: ${location_id} -> ${status}`)
+        }
+    }
+    return item;
 }
 async function remove(location_id) {
     const doc = { location_id };
@@ -139,8 +147,8 @@ async function remove(location_id) {
 }
 
 // DB
-const saveDataClient = async (location_identifier, user_id, slug, status='initializing') => {
-    await store(location_identifier, user_id, slug, status);
+const saveDataClient = async (location_identifier, user_id, slug, status='initializing', avoidUpdate=false) => {
+    await store(location_identifier, user_id, slug, status, avoidUpdate);
 };
 const removeDataClient = async (location_identifier, _user_id) => {
     await remove(location_identifier);

@@ -39,7 +39,7 @@ const initializeWhatsAppClient = async (location_identifier, user_id, slug = nul
         setupClientEventListeners(client, location_identifier, user_id);
         client.initialize();
         addClient(location_identifier, client);
-        saveDataClient(location_identifier, user_id, slug, 'initializing');
+        saveDataClient(location_identifier, user_id, slug, 'initializing', true);
     } catch (e) {
         // TODO -> what to do in DB ?
         console.error(`${location_identifier} Failed to initialize WhatsApp client. Error: `, Util.prettifyError(e));
