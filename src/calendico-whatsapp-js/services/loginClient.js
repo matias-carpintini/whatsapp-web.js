@@ -1,5 +1,7 @@
 const { initializeWhatsAppClient } = require('./whatsappService');
 const { getClient, removeClient } = require('./../clients/ClientsConnected');
+const { getClientInitializing, addClientInitializing } = require('./../clients/ClientsInitializingSession');
+
 const { saveDataClient, removeDataClient } = require('./../services/client');
 
 function loginClient(location_identifier, user_id, slug, res) {
@@ -11,12 +13,16 @@ function loginClient(location_identifier, user_id, slug, res) {
     try {
         const client = getClient(location_identifier);
         if (client === undefined) {
+            //if (getClientInitializing(location_identifier)) {
+                // already?
+            //}
             console.log(`[login] client unexists. Creating ${location_identifier} by user_id: ${user_id} and slug: ${slug}`);
             initializeWhatsAppClient(location_identifier, user_id, slug);
         } else {
             try {
                 console.log(`[login] client exists. Using process for ${location_identifier} by user_id: ${user_id} and slug: ${slug}`);
-                initializeWhatsAppClient(location_identifier, user_id, slug);
+                
+                client.initialize();
                 saveDataClient(location_identifier, user_id, slug, 'initializing')
             } catch (error) {
                 console.error('[login] initialize existing client failed.', error);
