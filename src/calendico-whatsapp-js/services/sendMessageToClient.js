@@ -75,7 +75,7 @@ async function send_message_to_client(
                     { linkPreview: dont_preview_links == null }
                 );
                 if (dont_archive_chat == null) {
-                    console.log(`:::archivingChat with ${receiver_phone}`)
+                    //console.log(`:::archivingChat with ${receiver_phone}`)
                     await archiveChatAfterDelay(messageObject);
                 } else {
                     await markChatAsUnreadAfterDelay(messageObject);
@@ -92,7 +92,7 @@ async function send_message_to_client(
                     message_status: messageObject.ack,
                     message_archived: true,
                 });
-                console.log(`message successfully sent to ${receiver_phone} [${message_id}]`)
+                console.log(`::: message OK sent to ${receiver_phone} [${message_id}]`)
             } catch (error) {
                 throw new Error(error);
             }

@@ -5,7 +5,7 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const routes = require('./endpoints/routes'); // Import the routes
 const { closeDB, ClientModel } = require('./services/db')
-const { showClients, checkIdleClients } = require('./services/client')
+const { syncDisconnected, checkIdleClients } = require('./services/client')
 const { initializeWhatsAppClient } = require('./services/whatsappService')
 
 const app = express(); 
@@ -41,11 +41,25 @@ app.use(bodyParser.json());
 app.use('/', routes);
 
 syncExistingClients();
-const intervalShow = process.env.INTERVAL_SHOW || 30000;
-console.log(`Setting interval to sync clients: ${intervalShow} ms`)
+
+// check current connections every 1 minute(s)
+const checkIntervalMs = process.env.CHECK_INTERVAL || 60*1000;
+console.log(`Setting interval to sync clients: ${checkIntervalMs} ms`)
 setInterval(() => { 
     checkIdleClients()
-}, intervalShow)
+}, checkIntervalMs)
+
+// disconnect old connections to rails between 5 minutes
+setTimeout(() => {
+    syncDisconnected()
+}, 30000);
+
+const discIntervalMs = process.env.DISCONNECT_INTERVAL || 5*60*1000;
+console.log(`Setting interval to sync clients: ${discIntervalMs*1000} seconds`)
+setInterval(() => { 
+    syncDisconnected()
+}, discIntervalMs)
+
 
 const PORT = process.env.PORT || 8093;
 app.listen(PORT, () => {
