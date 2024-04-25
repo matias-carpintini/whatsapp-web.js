@@ -34,7 +34,7 @@ async function checkIdleClients() {
                     const client = getClient(i.location_id);
                     if (!client){
                         if (i.status != 'disconnected'){
-                            i.updateOne({status: 'disconnected'});
+                            i.status = 'disconnected';
                             i.save();
                             console.log(`Setting ${i.location_id} to disconnected`)
                             axios.post(`${railsAppBaseUrl()}/new_login`, {
@@ -56,7 +56,7 @@ async function checkIdleClients() {
                             if (i.status == 'initializing' || i.status == 'qr_code_ready' || i.status == 'authenticated' || i.status == 'maxQrCodesReached') {
                                 console.log('checking idleCounter', i.idleCounter)
                                 if (i.idleCounter && i.idleCounter > 10){
-                                    i.updateOne({status: 'disconnected'})
+                                    i.status = 'disconnected';
                                     i.save();
                                     console.log(`Location [${i.location_id}] now is idle`)
                                     
@@ -79,7 +79,7 @@ async function checkIdleClients() {
                             } else {
                                 const n = i.idleCounter ? i.idleCounter + 1 : 1;
                                 console.log('incrementing counter...', n)
-                                    i.updateOne({ idleCounter: n })
+                                    i.idleCounter = n;
                                     i.save();
                                 }
                             }
