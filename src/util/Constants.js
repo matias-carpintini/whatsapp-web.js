@@ -7,7 +7,7 @@ exports.DefaultOptions = {
         headless: true,
         defaultViewport: null
     },
-    webVersion: '2.2346.52',
+    //webVersion: '2.2346.52',
     webVersionCache: {
         type: 'local',
     },
@@ -15,7 +15,8 @@ exports.DefaultOptions = {
     qrMaxRetries: 0,
     takeoverOnConflict: false,
     takeoverTimeoutMs: 0,
-    userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.67 Safari/537.36',
+    userAgent: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.5060.53 Safari/537.36',
+    //userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.67 Safari/537.36',
     ffmpegPath: 'ffmpeg',
     bypassCSP: false,
     proxyAuthentication: undefined

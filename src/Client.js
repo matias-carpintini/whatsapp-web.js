@@ -103,7 +103,7 @@ class Client extends EventEmitter {
             version = await this.getWWebVersion();
         } catch (e){
             version = DEFAULT_VERSION;
-            console.log(`:${this.location_identifier} => inject getWebVERSION error, using default version`, Util.prettifyError(e)) 
+            console.log(`:${this.location_identifier} => inject getWebVERSION error, using default version: `) 
         }
         console.log(`:${this.location_identifier} => returned version`, version)
         const isCometOrAbove = parseInt(version.split('.')?.[1]) >= 3000;
@@ -771,7 +771,6 @@ class Client extends EventEmitter {
         const webCache = WebCacheFactory.createWebCache(webCacheType, webCacheOptions);
 
         const requestedVersion = this.options.webVersion;
-        console.log({requestedVersion})
         const versionContent = await webCache.resolve(requestedVersion);
 
         if(versionContent) {

@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const puppeteer = require('puppeteer');
 const { send_message_to_client } = require('../services/sendMessageToClient');
 const { loginClient } = require('../services/loginClient');
 const { logoutClient } = require('../services/logoutClient');
@@ -68,7 +69,12 @@ router.get('/show_clients', authMiddleware, async (req, res) => {
     table += '</table></body></html>';
     return res.send(table);
 })
-
+router.get('/check_browser', async (_req, res) => {
+        const browser = await puppeteer.launch();
+        const version = await browser.version();
+        await browser.close();
+        return res.send(`browser version: ${version}`);
+})
 router.post('/login', (req, res) => {
     const { location_identifier, slug, user_id } = req.body;
     console.log(`[route/login] locationId ${location_identifier}, user_id: ${user_id}, slug: ${slug}`);
