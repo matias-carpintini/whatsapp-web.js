@@ -137,7 +137,7 @@ const setupClientEventListeners = (client, location_identifier, user_id) => {
         }
         console.log(`${location_identifier} // setup/client.on.disconnected/loc: (${location_identifier}) was logged out: `, reason);
         removeClient(location_identifier);
-        removeDataClient(location_identifier);
+        saveDataClient(location_identifier, null, null, 'disconnected');
         // TO DO => NAVIGATION reason to could be first time to reinitialize. 
         await axios.post(`${railsAppBaseUrl()}/new_login`, {
             event_type: 'logout',

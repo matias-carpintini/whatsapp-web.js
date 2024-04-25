@@ -771,6 +771,7 @@ class Client extends EventEmitter {
         const webCache = WebCacheFactory.createWebCache(webCacheType, webCacheOptions);
 
         const requestedVersion = this.options.webVersion;
+        console.log({requestedVersion})
         const versionContent = await webCache.resolve(requestedVersion);
 
         if(versionContent) {
