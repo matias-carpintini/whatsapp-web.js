@@ -33,28 +33,31 @@ async function checkIdleClients() {
                     console.log(`[checking ... ${i.location_id}] => ${i.status}`)
                     const client = getClient(i.location_id);
                     if (!client){
-                        i.updateOne({status: 'disconnected'});
-                        axios.post(`${railsAppBaseUrl()}/new_login`, {
-                            event_type: 'logout',
-                            user_id: 'automatic_reconnect',
-                            phone: '000',
-                            location_identifier: i.location_id,
-                        }).catch(e => {
-                            console.error(`${i.location_id} // setup/client.on.disconnected/Error sending ready event to rails app:`, e.code);
-                        });
+                        if (i.status != 'disconnected'){
+                            i.updateOne({status: 'disconnected'});
+                            axios.post(`${railsAppBaseUrl()}/new_login`, {
+                                event_type: 'logout',
+                                user_id: 'automatic_reconnect',
+                                phone: '000',
+                                location_identifier: i.location_id,
+                            }).catch(e => {
+                                console.error(`${i.location_id} // setup/client.on.disconnected/Error sending disconnect event to rails app:`, e.code);
+                            });
+                        }
                     } else {
                         if (i.status != 'disconnected'){
                             const pupState = await client.getState().catch(async (error) => {
                                 console.log(`${i.location_id} => Error getting client state:`, error);
                             });
                             if (i.status == 'initializing' || i.status == 'qr_code_ready' || i.status == 'authenticated') {
+                                console.log('checking idleCounter')
                                 if (i.idleCounter && i.idleCounter > 10){
-                                    i.updateOne({status: 'idle'})
+                                    i.updateOne({status: 'disconnected'})
                                     console.log(`Location [${i.location_id}] now is idle`)
                                     
                                     client.logout().then(() => {
                                         console.log(`${i.location_id} => Client logged out`)
-
+                                        
                                         axios.post(`${railsAppBaseUrl()}/new_login`, {
                                             event_type: 'logout',
                                             user_id: 'automatic_reconnect',
@@ -63,13 +66,14 @@ async function checkIdleClients() {
                                         }).catch(e => {
                                             console.error(`${i.location_id} // setup/client.on.disconnected/Error sending ready event to rails app:`, e.code);
                                         });
-
+                                        
                                     }).catch(e => {
                                         console.error(`${i.location_id} => Error logging out:`, e)
                                     }
-                                    );
-                                } else {
-                                    const n = i.idleCounter ? i.idleCounter + 1 : 1;
+                                );
+                            } else {
+                                const n = i.idleCounter ? i.idleCounter + 1 : 1;
+                                console.log('incrementing counter...', n)
                                     i.updateOne({ idleCounter: n })
                                 }
                             }
