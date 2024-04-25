@@ -41,7 +41,7 @@ async function checkIdleClients() {
                                 phone: '000',
                                 location_identifier: i.location_id,
                             }).catch(e => {
-                                console.error(`${i.location_id} // setup/client.on.disconnected/Error sending disconnect event to rails app:`, e.code);
+                                console.error(`${i.location_id} // error sending logout event to rails app:`, e.code);
                             });
                         }
                     } else {
@@ -49,7 +49,7 @@ async function checkIdleClients() {
                             const pupState = await client.getState().catch(async (error) => {
                                 console.log(`${i.location_id} => Error getting client state:`, error);
                             });
-                            if (i.status == 'initializing' || i.status == 'qr_code_ready' || i.status == 'authenticated') {
+                            if (i.status == 'initializing' || i.status == 'qr_code_ready' || i.status == 'authenticated' || i.status == 'maxQrCodesReached') {
                                 console.log('checking idleCounter')
                                 if (i.idleCounter && i.idleCounter > 10){
                                     i.updateOne({status: 'disconnected'})
@@ -64,7 +64,7 @@ async function checkIdleClients() {
                                             phone: '000',
                                             location_identifier: i.location_id,
                                         }).catch(e => {
-                                            console.error(`${i.location_id} // setup/client.on.disconnected/Error sending ready event to rails app:`, e.code);
+                                            console.error(`${i.location_id} // error sending logout event to rails app:`, e.code);
                                         });
                                         
                                     }).catch(e => {
