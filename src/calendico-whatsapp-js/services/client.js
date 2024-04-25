@@ -35,6 +35,7 @@ async function checkIdleClients() {
                     if (!client){
                         if (i.status != 'disconnected'){
                             i.updateOne({status: 'disconnected'});
+                            i.save();
                             console.log(`Setting ${i.location_id} to disconnected`)
                             axios.post(`${railsAppBaseUrl()}/new_login`, {
                                 event_type: 'logout',
@@ -56,6 +57,7 @@ async function checkIdleClients() {
                                 console.log('checking idleCounter', i.idleCounter)
                                 if (i.idleCounter && i.idleCounter > 10){
                                     i.updateOne({status: 'disconnected'})
+                                    i.save();
                                     console.log(`Location [${i.location_id}] now is idle`)
                                     
                                     client.logout().then(() => {
@@ -78,6 +80,7 @@ async function checkIdleClients() {
                                 const n = i.idleCounter ? i.idleCounter + 1 : 1;
                                 console.log('incrementing counter...', n)
                                     i.updateOne({ idleCounter: n })
+                                    i.save();
                                 }
                             }
                         }
