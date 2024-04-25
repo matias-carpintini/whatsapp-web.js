@@ -107,7 +107,7 @@ class Client extends EventEmitter {
         }
         console.log(`:${this.location_identifier} => returned version`, version)
         const isCometOrAbove = parseInt(version.split('.')?.[1]) >= 3000;
-        console.log(`:${this.location_identifier} => isCometOrAbove?: `,isCometOrAbove);
+        console.log(`:${this.location_identifier} => is WhatsApp Comet Version? (>3000)?: `,isCometOrAbove);
         try {
             if (isCometOrAbove) {
                 await this.pupPage.evaluate(ExposeAuthStore);
@@ -149,7 +149,7 @@ class Client extends EventEmitter {
         console.log(`:${this.location_identifier} => if needAuth? `)
 
         if (needAuthentication) {
-            console.log(`:${this.location_identifier} =>  if (needAuth) true`)
+            console.log(`:${this.location_identifier} => if (needAuth) true`)
             const { failed, failureEventPayload, restart } = await this.authStrategy.onAuthenticationNeeded();
             if(failed) {
                 console.log(`:${this.location_identifier} => failed auth`);

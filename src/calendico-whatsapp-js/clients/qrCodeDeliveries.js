@@ -11,7 +11,6 @@ const maxQrCodeDeliveriesReached = (location_identifier) => {
     return qrCodeDeliveries[location_identifier] >= MAX_QR_CODE_DELIVERIES;
 }
 const addQrCodeDelivery = (location_identifier) => {
-    console.log(`addQrCodeDelivery/Adding qrCode delivery for location identifier: ${location_identifier}`)
     qrCodeDeliveries[location_identifier] = 1;
 };
 
