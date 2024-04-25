@@ -35,6 +35,7 @@ async function checkIdleClients() {
                     if (!client){
                         if (i.status != 'disconnected'){
                             i.updateOne({status: 'disconnected'});
+                            console.log(`Setting ${i.location_id} to disconnected`)
                             axios.post(`${railsAppBaseUrl()}/new_login`, {
                                 event_type: 'logout',
                                 user_id: 'automatic_reconnect',
@@ -43,6 +44,8 @@ async function checkIdleClients() {
                             }).catch(e => {
                                 console.error(`${i.location_id} // error sending logout event to rails app:`, e.code);
                             });
+                        } else {
+
                         }
                     } else {
                         if (i.status != 'disconnected'){
@@ -50,7 +53,7 @@ async function checkIdleClients() {
                                 console.log(`${i.location_id} => Error getting client state:`, error);
                             });
                             if (i.status == 'initializing' || i.status == 'qr_code_ready' || i.status == 'authenticated' || i.status == 'maxQrCodesReached') {
-                                console.log('checking idleCounter')
+                                console.log('checking idleCounter', i.idleCounter)
                                 if (i.idleCounter && i.idleCounter > 10){
                                     i.updateOne({status: 'disconnected'})
                                     console.log(`Location [${i.location_id}] now is idle`)
